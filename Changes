@@ -1,0 +1,21 @@
+=== 1.6
+o Implemented escape sequences for working with pseudo graphics. Now pseudo
+  graphic symbols for tables are translated to '+', '-', and '|' respectively.
+
+o Implemented escape sequences for controlling autowrap, added configurable
+  autowrap feature to Session::Screen class.
+
+=== 1.5 
+o Added more MVS demo files.
+
+=== 1.4
+o Modified runtime framework, so that mode runners are executed in the binding
+  of class Test::Accept::Runtime. This makes it possible to directly use methods
+  Runtime#terminal and Runtime#screen to obtain predefined terminal and screen
+  respectively.
+
+o Modified mode runner framework, introduced telnet mode to connect to
+  automatically connect to a specified host before executing a user script.
+
+o Introduced support for 3270 systems
+
