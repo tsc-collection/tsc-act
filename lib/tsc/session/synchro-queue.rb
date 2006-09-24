@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,18 +47,19 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
-
+=end
 
 require 'tsc/monitor.rb'
 require 'tsc/errors.rb'
 
 module Session
   class SynchroQueue
-    attr_reader :high_water_mark, :blocking_put
+    attr_reader :high_water_mark
 
     def blocking_put(status)
       @blocking_put = status ? true : false;
     end
+
     def blocking_put?
       @blocking_put
     end
@@ -69,32 +71,36 @@ module Session
       @data_available = TSC::Monitor::ConditionVariable.new @monitor
       @high_water_mark = 0
     end
+
     def read(size)
       get
     end
+
     def get(timeout = nil)
       @monitor.synchronize do
-	loop do
-	  return @queue.shift unless @queue.empty?
-	  if @data_available.wait(timeout) == false
-	    throw TSC::OperationFailed, "get"
-	  end
-	end
+        loop do
+          return @queue.shift unless @queue.empty?
+          if @data_available.wait(timeout) == false
+            throw TSC::OperationFailed, "get"
+          end
+        end
       end
     end
+
     def put(*args)
       if @blocking_put == false
-	return false if @monitor.try_mon_enter == false
+        return false if @monitor.try_mon_enter == false
       else
-	@monitor.mon_enter
+        @monitor.mon_enter
       end
+
       begin 
-	@queue.concat args
-	size = @queue.size
-	@high_water_mark = size if size > @high_water_mark
-	@data_available.broadcast
+        @queue.concat args
+        size = @queue.size
+        @high_water_mark = size if size > @high_water_mark
+        @data_available.broadcast
       ensure
-	@monitor.mon_exit
+        @monitor.mon_exit
       end
       true
     end
@@ -108,14 +114,14 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
     class MockReader
       attr_reader :data
       def initialize(queue)
-	@queue = queue
-	@data = []
+        @queue = queue
+        @data = []
       end
       def run
-	loop do
-	  data = @queue.get
-	  @data.push data
-	end
+        loop do
+          data = @queue.get
+          @data.push data
+        end
       end
     end
 
@@ -125,7 +131,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
 
       assert_equal 0, reader.data.size, 'Reader buffer must be empty'
       while @queue.put('abc', nil, 'def') == false do
-	sleep 1
+        sleep 1
       end
       sleep 1
       assert_equal 3, reader.data.size, 'Reader buffer must have the data'
