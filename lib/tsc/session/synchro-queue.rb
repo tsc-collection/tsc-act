@@ -51,58 +51,12 @@
 
 require 'tsc/monitor.rb'
 require 'tsc/errors.rb'
+require 'tsc/synchro-queue.rb'
 
 module Session
-  class SynchroQueue
-    attr_reader :high_water_mark
-
-    def blocking_put=(status)
-      @blocking_put = status ? true : false;
-    end
-
-    def blocking_put?
-      @blocking_put
-    end
-
-    def initialize(blocking_put = false)
-      @queue = []
-      @blocking_put = blocking_put
-      @monitor = TSC::Monitor.new
-      @data_available = TSC::Monitor::ConditionVariable.new @monitor
-      @high_water_mark = 0
-    end
-
+  class SynchroQueue < TSC::SynchroQueue
     def read(size)
       get
-    end
-
-    def get(timeout = nil)
-      @monitor.synchronize do
-        loop do
-          return @queue.shift unless @queue.empty?
-          if @data_available.wait(timeout) == false
-            throw TSC::OperationFailed, 'get'
-          end
-        end
-      end
-    end
-
-    def put(*args)
-      if blocking_put?
-        @monitor.mon_enter
-      else
-        return false if @monitor.try_mon_enter == false
-      end
-
-      begin 
-        @queue.concat args
-        size = @queue.size
-        @high_water_mark = size if size > @high_water_mark
-        @data_available.broadcast
-      ensure
-        @monitor.mon_exit
-      end
-      true
     end
   end
 end
@@ -110,45 +64,13 @@ end
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  class SynchroQueueTest < Test::Unit::TestCase
-    class MockReader
-      attr_reader :data
-
-      def initialize(queue)
-        @queue = queue
-        @data = []
+  module Session
+    class SynchroQueueTest < Test::Unit::TestCase
+      def setup
       end
 
-      def run
-        loop do
-          data = @queue.get
-          @data.push data
-        end
+      def teardown
       end
-    end
-
-    def test_data
-      reader = MockReader.new @queue
-      thread = Thread.new { reader.run }
-
-      assert_equal 0, reader.data.size, 'Reader buffer must be empty'
-      while @queue.put('abc', nil, 'def') == false do
-        sleep 1
-      end
-      sleep 1
-      assert_equal 3, reader.data.size, 'Reader buffer must have the data'
-      assert_equal 'abc', reader.data[0]
-      assert_equal nil, reader.data[1]
-      assert_equal 'def', reader.data[2]
-    end
-
-    def setup
-      Thread.abort_on_exception = true
-      @queue = Session::SynchroQueue.new
-    end
-
-    def teardown
-      @queue = nil
     end
   end
 end
