@@ -56,7 +56,7 @@ module Session
   class SynchroQueue
     attr_reader :high_water_mark
 
-    def blocking_put(status)
+    def blocking_put=(status)
       @blocking_put = status ? true : false;
     end
 
@@ -81,17 +81,17 @@ module Session
         loop do
           return @queue.shift unless @queue.empty?
           if @data_available.wait(timeout) == false
-            throw TSC::OperationFailed, "get"
+            throw TSC::OperationFailed, 'get'
           end
         end
       end
     end
 
     def put(*args)
-      if @blocking_put == false
-        return false if @monitor.try_mon_enter == false
-      else
+      if blocking_put?
         @monitor.mon_enter
+      else
+        return false if @monitor.try_mon_enter == false
       end
 
       begin 
@@ -113,10 +113,12 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   class SynchroQueueTest < Test::Unit::TestCase
     class MockReader
       attr_reader :data
+
       def initialize(queue)
         @queue = queue
         @data = []
       end
+
       def run
         loop do
           data = @queue.get
@@ -139,10 +141,12 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
       assert_equal nil, reader.data[1]
       assert_equal 'def', reader.data[2]
     end
+
     def setup
       Thread.abort_on_exception = true
       @queue = Session::SynchroQueue.new
     end
+
     def teardown
       @queue = nil
     end
