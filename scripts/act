@@ -101,7 +101,7 @@ class Application < TSC::Application
       begin
 	Test::Accept::Runner.load(runner_path).new(@options).start
       rescue StandardError, Interrupt, SignalException => exception
-	raise TSC::CompoundError.new(File.basename(runner), exception)
+	raise TSC::Error.new(File.basename(runner), exception)
       end
     end
     exit! 0

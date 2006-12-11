@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,13 +47,13 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-
-require 'test/accept/runner.rb'
-require 'test/accept/runtime.rb'
-require 'session/manager.rb'
-require 'session/screen.rb'
-require 'session/vt100-emulator.rb'
+require 'tsc/test/accept/runner.rb'
+require 'tsc/test/accept/runtime.rb'
+require 'tsc/session/manager.rb'
+require 'tsc/session/screen.rb'
+require 'tsc/session/vt100-emulator.rb'
 
 class Runner < Test::Accept::Runner
   def start

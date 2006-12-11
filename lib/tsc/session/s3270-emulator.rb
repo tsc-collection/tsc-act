@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,10 +47,11 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-require 'session/emulator.rb'
-require 'session/key.rb'
-require 'session/screen.rb'
+require 'tsc/session/emulator.rb'
+require 'tsc/session/key.rb'
+require 'tsc/session/screen.rb'
 require 'tsc/string.rb'
 
 module Session
