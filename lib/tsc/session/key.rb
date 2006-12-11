@@ -74,8 +74,8 @@ module Session
     end
     def self.define_key(*args)
       args.each do |key|
-	key.to_a.each do |key|
-	  name, value = key.to_a
+	Array(key).each do |key|
+	  name, value = Array(key)
 	  const_set name, new("#{name}",value,"visit_#{name}".intern)
 	end
       end

@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,8 +47,9 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-require 'session/synchro-queue.rb'
+require 'tsc/synchro-queue.rb'
 require 'tsc/errors.rb'
 require 'tsc/monitor.rb'
 
@@ -139,7 +141,7 @@ module Session
 	      @s3270.puts "wait(1,output)"
 	      responce = @queue.get(5)
 	      if responce.last == 'ok'
-		@data.put run :check, "ascii"
+		@data.put run(:check, "ascii")
 	      end
 	    end
 	  end

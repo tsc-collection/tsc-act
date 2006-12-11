@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,11 +47,12 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-require 'session/terminal.rb'
-require 'session/telnet-stream.rb'
-require 'session/s3270-stream.rb'
-require 'session/exec-stream.rb'
+require 'tsc/session/terminal.rb'
+require 'tsc/session/telnet-stream.rb'
+require 'tsc/session/s3270-stream.rb'
+require 'tsc/session/exec-stream.rb'
 require 'tsc/errors.rb'
 
 module Session

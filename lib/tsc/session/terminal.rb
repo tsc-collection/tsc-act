@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,10 +47,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
-
+=end
 
 require 'forwardable'
-require 'session/synchro-queue.rb'
+require 'tsc/synchro-queue.rb'
 require 'tsc/errors.rb'
 
 module Session
@@ -129,7 +130,7 @@ module Session
     def typein(*keys)
       raise TerminalError if @finished == true
       keys.each do |_key|
-	@stream.write @emulator.key_sequence _key
+	@stream.write @emulator.key_sequence(_key)
       end
     end
 

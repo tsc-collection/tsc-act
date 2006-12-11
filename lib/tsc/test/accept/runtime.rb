@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,14 +47,15 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
 require 'singleton'
 require 'tsc/errors.rb'
-require 'test/accept/action.rb'
+require 'tsc/test/accept/action.rb'
 
-require 'session/manager.rb'
-require 'session/dumb-emulator.rb'
-require 'session/vt100-emulator.rb'
+require 'tsc/session/manager.rb'
+require 'tsc/session/dumb-emulator.rb'
+require 'tsc/session/vt100-emulator.rb'
 
 module Test
   module Accept

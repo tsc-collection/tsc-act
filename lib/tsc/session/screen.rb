@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,12 +47,13 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
 require 'tsc/monitor'
 
 require 'tsc/trace'
-require 'session/pair'
-require 'session/line-buffer'
+require 'tsc/session/pair'
+require 'tsc/session/line-buffer'
 
 module Session
   class Screen 
@@ -318,7 +320,7 @@ module Session
 	  area = @area[top .. bottom]
 	  number.times do 
 	    area.shift
-	    area.push (' ' * @size.x)
+	    area.push ' ' * @size.x
 	  end
 	  @area[top .. bottom] = area
 	  signal_update
@@ -342,7 +344,7 @@ module Session
 	  area = @area[top .. bottom]
 	  number.times do 
 	    area.pop
-	    area.unshift (' ' * @size.x)
+	    area.unshift ' ' * @size.x
 	  end
 	  @area[top .. bottom] = area
 	  signal_update
@@ -360,7 +362,7 @@ module Session
 	return unless region.x.between?(0,number)
 	return unless region.y.between?(region.x+1,number)
 
-	region.x.upto (region.y-1) do |_index|
+	region.x.upto(region.y-1) do |_index|
 	  @area[_index / @size.x][_index % @size.x,1] = ' '
 	end
 	signal_update
@@ -621,13 +623,13 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
 	@screen.set_cursor 35, 7
 	assert_equal 35, @screen.cursor.x
 	assert_equal 7, @screen.cursor.y
-	assert_equal true, @screen.cursor_at? 35, 7
-	assert_equal false, @screen.cursor_at? 7, 35
+	assert_equal true, @screen.cursor_at?(35, 7)
+	assert_equal false, @screen.cursor_at?(7, 35)
 
 	@screen.set_cursor -435, @screen.size.y + 8
 	assert_equal 0, @screen.cursor.x
 	assert_equal @screen.size.y, @screen.cursor.y
-	assert_equal true, @screen.cursor_at? 0, @screen.size.y
+	assert_equal true, @screen.cursor_at?(0, @screen.size.y)
 
 	@screen.set_cursor @screen.size.x + 6, -67
 	assert_equal @screen.size.x, @screen.cursor.x

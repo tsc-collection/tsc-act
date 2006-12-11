@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -47,31 +48,15 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-
-if defined? Installation::Generator
-  class Generator < Installation::Generator
-    def create(io)
-      bindir = File.join self.class.installation_top, ".meta-inf/tools/bin"
-      [ 
-        "#!#{bindir}/ruby", '',
-	"$:.delete '.'",
-	"$:.concat %w{ #{bindir} #{self.class.installation_top}/lib . }",
-	*readlines_after_end_marker(__FILE__)
-      ]
-    end
-  end
-else
-  $:.delete '.'
-  $:.concat [ File.expand_path(File.dirname(__FILE__)), '.', *ENV['PATH'].split(':') ]
-  eval DATA.readlines.join, binding, __FILE__
-end
-
-__END__
+$:.concat ENV.to_hash['PATH'].to_s.split(':')
 
 require 'tsc/application.rb'
+require 'tsc/path.rb'
 
 class Application < TSC::Application
+
   def initialize
     super('<test case>',
       [ '--mode', 'Operational mode', 'mode', '-m' ],
@@ -88,16 +73,16 @@ class Application < TSC::Application
 
   def start
     handle_errors do
-      localize_ruby_loadpath
       process_command_line
+      $: << File.expand_path(File.join(script_location, '..', 'lib'))
 
       do_and_exit { run_internal_tests } if @options['test']
 
-      require 'test/accept/runner.rb'
-      require 'test/accept/runtime.rb'
-
       do_and_exit { print_loadpath } if @options['loadpath']
       do_and_exit { print_mode_directory } if @options['modedir']
+
+      require 'tsc/test/accept/runner.rb'
+      require 'tsc/test/accept/runtime.rb'
 
       mode = @options['mode']
       if mode
@@ -110,8 +95,8 @@ class Application < TSC::Application
 	raise 'No test runner specified'
       end
 
-      runner_path = figure_runner_path runner
-      $:.push File.dirname runner_path
+      runner_path = figure_runner_path(runner)
+      $: << File.dirname(runner_path)
 
       begin
 	Test::Accept::Runner.load(runner_path).new(@options).start
@@ -149,6 +134,12 @@ class Application < TSC::Application
   def run_internal_tests
     require 'session/test-suite.rb'
     ARGV.clear
+  end
+
+  in_generator_context do |_content|
+    _content << '#!' + figure_ruby_path
+    _content << TSC::PATH.current.front(File.dirname(figure_ruby_path)).to_ruby_eval
+    _content << IO.readlines(__FILE__).slice(1..-1)
   end
 end
 

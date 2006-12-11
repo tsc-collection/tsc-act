@@ -1,3 +1,4 @@
+=begin
 #
 #            Tone Software Corporation BSD License ("License")
 # 
@@ -46,9 +47,10 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
+=end
 
-require 'session/emulator.rb'
-require 'session/screen.rb'
+require 'tsc/session/emulator.rb'
+require 'tsc/session/screen.rb'
 
 module Session
   class DumbEmulator < Emulator
@@ -79,7 +81,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
       end
       def test_key_sequence
 	assert_equal 'teststring', @emulator.key_sequence(:teststring)
-	assert_equal '<F6>', @emulator.key_sequence Session::Key::F6
+	assert_equal '<F6>', @emulator.key_sequence(Session::Key::F6)
       end
       def test_process_data
 	@emulator.process_data 'hello', :World
