@@ -52,7 +52,7 @@
 require 'singleton'
 require 'tempfile'
 require 'irb'
-require 'devel/logger'
+require 'logger'
 require 'date'
 require 'time'
 require 'net/ftp'

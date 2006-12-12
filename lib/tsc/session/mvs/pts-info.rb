@@ -99,7 +99,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
   module TSC
     module Session
       module Mvs
-        class PtsInfoTest < Test::Unit::TestCase
+        class PtsInfoTest < ::Test::Unit::TestCase
           def test_pts_type
             item = PtsInfo.new 'pts0456'
             assert_equal 'PTS0456', item.name

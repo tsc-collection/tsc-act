@@ -51,8 +51,8 @@
 
 require 'demo/mvs/tso-logoff.rb'
 require 'tsc/progress.rb'
-require 'session/mvs/pts-info.rb'
-require 'session/mvs/tso.rb'
+require 'tsc/session/mvs/pts-info.rb'
+require 'tsc/session/mvs/tso.rb'
 
 module Demo
   module Mvs

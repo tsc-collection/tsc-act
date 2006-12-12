@@ -116,7 +116,7 @@ module TSC
 
       def start_reader_thread
         @reader = Thread.new do
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             loop do 
                responce = []
                @s3270.each do |_line|
@@ -140,7 +140,7 @@ module TSC
       def start_checker_thread
         @checker = Thread.new do
           Thread.pass
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             loop do
               @monitor.synchronize do
                 @s3270.puts "wait(1,output)"

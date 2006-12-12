@@ -79,7 +79,7 @@ module TSC
           when 0 
             [0, 0]
           when 1
-            args = args.first.to_a
+            args = Array(args.first)
             raise ArgumentError if args.size == 1
             normalize *args
           when 2

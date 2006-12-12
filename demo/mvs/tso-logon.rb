@@ -56,7 +56,7 @@ require 'tsc/session/mvs/tso.rb'
 
 module Demo
   module Mvs
-    class LogonAction < Test::Accept::Action
+    class LogonAction < TSC::Test::Accept::Action
       attr_reader :password, :verbose, :tso
 
       def user

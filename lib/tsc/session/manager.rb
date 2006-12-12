@@ -108,7 +108,7 @@ module TSC
         return terminal unless block
 
         Thread.new do
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             begin 
               terminal.start
               block.call terminal

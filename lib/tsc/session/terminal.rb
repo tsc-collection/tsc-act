@@ -116,7 +116,7 @@ module TSC
         raise TerminalError if @finished == true
         stop_screen_check
         @screen_check_thread ||= Thread.new do
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             loop do
               screen.wait_update do
                 ios.puts 'Screen updated:'
@@ -143,7 +143,7 @@ module TSC
 
       def start_data_thread
         Thread.new do
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             loop do
               data = @stream.get_available_data
               unless data.nil?
@@ -160,7 +160,7 @@ module TSC
 
       def start_update_thread
         Thread.new do
-          pass_errors @error_handler_thread do
+          TSC::Error.relay @error_handler_thread do
             loop do
               @emulator.process_data @data_queue.get
             end
