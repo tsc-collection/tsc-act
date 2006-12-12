@@ -51,21 +51,23 @@
 
 require 'tsc/errors.rb'
 
-module Session
-  class Emulator
-    attr_reader :screen, :term
+module TSC
+  module Session
+    class Emulator
+      attr_reader :screen, :term
 
-    def initialize(term, screen)
-      @term = term.to_s
-      @screen = screen
-    end
+      def initialize(term, screen)
+        @term = term.to_s
+        @screen = screen
+      end
 
-    def process_data(*args)
-      raise TSC::NotImplementedError, :process_data
-    end
+      def process_data(*args)
+        raise TSC::NotImplementedError, :process_data
+      end
 
-    def key_sequence(key)
-      raise TSC::NotImplementedError, :key_sequence
+      def key_sequence(key)
+        raise TSC::NotImplementedError, :key_sequence
+      end
     end
   end
 end

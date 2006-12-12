@@ -55,64 +55,66 @@ require 'tsc/session/s3270-stream.rb'
 require 'tsc/session/exec-stream.rb'
 require 'tsc/errors.rb'
 
-module Session
-  class Manager
-    def initialize(emulator_factory)
-      @emulator_factory = emulator_factory
-      @error_handler_thread = Thread.current
-    end
-    
-    def telnet_session(host, user = nil, password = nil, prompt = nil, &block)
-      host_array = host.to_s.split ':'
-      host = host_array[0].strip
-      port = host_array[1].to_i
+module TSC
+  module Session
+    class Manager
+      def initialize(emulator_factory)
+        @emulator_factory = emulator_factory
+        @error_handler_thread = Thread.current
+      end
+      
+      def telnet_session(host, user = nil, password = nil, prompt = nil, &block)
+        host_array = host.to_s.split ':'
+        host = host_array[0].strip
+        port = host_array[1].to_i
 
-      options = Hash[
-        'Host' => host, 
-        'Port' => (port==0 ? 23 : port)
-      ]
-      options['Prompt'] = prompt if prompt
+        options = Hash[
+          'Host' => host, 
+          'Port' => (port==0 ? 23 : port)
+        ]
+        options['Prompt'] = prompt if prompt
 
-      emulator = @emulator_factory.emulator
-      stream = TelnetStream.new options
+        emulator = @emulator_factory.emulator
+        stream = TelnetStream.new options
 
-      user_array = user.to_s.split ':'
-      user = user_array[0].to_s.strip
-      password ||= user_array[1]
+        user_array = user.to_s.split ':'
+        user = user_array[0].to_s.strip
+        password ||= user_array[1]
 
-      stream.login user, password.to_s.strip unless user.empty?
-      session stream, emulator, &block
-    end
+        stream.login user, password.to_s.strip unless user.empty?
+        session stream, emulator, &block
+      end
 
-    def mvs_session(host, &block)
-      stream = S3270Stream.new host
-      emulator = @emulator_factory.emulator
+      def mvs_session(host, &block)
+        stream = S3270Stream.new host
+        emulator = @emulator_factory.emulator
 
-      session stream, emulator, &block
-    end
+        session stream, emulator, &block
+      end
 
-    def exec_session(*command,&block) 
-      emulator = @emulator_factory.emulator
-      stream = ExecStream.new {
-        ENV['TERM'] = emulator.term
-        exec *command
-      }
-      session stream, emulator, &block
-    end
+      def exec_session(*command,&block) 
+        emulator = @emulator_factory.emulator
+        stream = ExecStream.new {
+          ENV['TERM'] = emulator.term
+          exec *command
+        }
+        session stream, emulator, &block
+      end
 
-    private
-    #######
-    def session(stream, emulator, &block)
-      terminal = Terminal.new stream, emulator
-      return terminal unless block
+      private
+      #######
+      def session(stream, emulator, &block)
+        terminal = Terminal.new stream, emulator
+        return terminal unless block
 
-      Thread.new do
-        pass_errors @error_handler_thread do
-          begin 
-            terminal.start
-            block.call terminal
-          ensure
-            terminal.reset
+        Thread.new do
+          pass_errors @error_handler_thread do
+            begin 
+              terminal.start
+              block.call terminal
+            ensure
+              terminal.reset
+            end
           end
         end
       end
@@ -125,103 +127,105 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'tsc/session/dumb-emulator.rb'
   require 'tsc/session/screen.rb'
 
-  module Session
-    class ManagerTest < Test::Unit::TestCase
-      def emulator
-        DumbEmulator.new Screen.new
-      end
-
-      def test_command_session
-        message = "Hello, world !!!"
-        @terminal = @manager.exec_session("echo #{message.inspect}")
-        @terminal.screen.lock {
-          @terminal.start
-          @terminal.screen.wait_full_update {
-            assert_equal message, @terminal.screen.lines.first.strip
-          }
-        }
-      end
-      
-      def test_telnet_session
-        @terminal = @manager.telnet_session("localhost:7")
-        @terminal.start
-        @terminal.screen.lock {
-          @terminal.typein "abcdef\n"
-          @terminal.screen.wait_full_update {
-            assert_equal "abcdef", @terminal.screen.lines.first.strip
-          }
-        }
-      end
-
-      def test_finished
-        @terminal = @manager.exec_session "date"
-        assert_equal false, @terminal.finished?
-        @terminal.start
-        assert_nothing_raised do
-          timeout 1 do
-            until @terminal.finished?
-            end
-          end
+  module TSC
+    module Session
+      class ManagerTest < Test::Unit::TestCase
+        def emulator
+          DumbEmulator.new Screen.new
         end
-        assert_nothing_raised do
-          timeout 1 do
-            while @terminal.stream.alive?
-            end
-          end
-        end
-        assert_equal true, @terminal.stream.exited?
-        assert_equal 0, @terminal.stream.status
-      end
 
-      def test_reset
-        @terminal = @manager.exec_session "sh"
-        @terminal.start
-        sleep 1
-        assert_equal false, @terminal.finished?
-        assert_equal true, @terminal.stream.alive?
-        @terminal.reset
-        assert_equal true, @terminal.finished?
-        assert_nothing_raised do
-          timeout 2 do
-            while @terminal.stream.alive?
-            end
-          end
-        end
-        assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
-      end
-
-      def test_detached_session
-        result = nil
-        timeout 3 do
-          thread = @manager.exec_session "sh" do |_terminal|
-            @terminal = _terminal
-            _terminal.screen.lock {
-              _terminal.typein "echo $TERM\n"
-              _terminal.screen.wait_full_update {
-                result = _terminal.screen.lines[1]
-              }
+        def test_command_session
+          message = "Hello, world !!!"
+          @terminal = @manager.exec_session("echo #{message.inspect}")
+          @terminal.screen.lock {
+            @terminal.start
+            @terminal.screen.wait_full_update {
+              assert_equal message, @terminal.screen.lines.first.strip
             }
-          end
-          thread.join
+          }
         end
-        assert_match %r{dumb\s*$}, result
-        assert_equal true, @terminal.finished?
-        timeout 1 do
-          while @terminal.stream.alive?
-          end
+        
+        def test_telnet_session
+          @terminal = @manager.telnet_session("localhost:7")
+          @terminal.start
+          @terminal.screen.lock {
+            @terminal.typein "abcdef\n"
+            @terminal.screen.wait_full_update {
+              assert_equal "abcdef", @terminal.screen.lines.first.strip
+            }
+          }
         end
-        assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
-      end
 
-      def setup
-        @terminal = nil
-        @manager = Manager.new self
-      end
+        def test_finished
+          @terminal = @manager.exec_session "date"
+          assert_equal false, @terminal.finished?
+          @terminal.start
+          assert_nothing_raised do
+            timeout 1 do
+              until @terminal.finished?
+              end
+            end
+          end
+          assert_nothing_raised do
+            timeout 1 do
+              while @terminal.stream.alive?
+              end
+            end
+          end
+          assert_equal true, @terminal.stream.exited?
+          assert_equal 0, @terminal.stream.status
+        end
 
-      def teardown
-        @terminal.reset if @terminal
-        @manager = nil
-        @terminal = nil
+        def test_reset
+          @terminal = @manager.exec_session "sh"
+          @terminal.start
+          sleep 1
+          assert_equal false, @terminal.finished?
+          assert_equal true, @terminal.stream.alive?
+          @terminal.reset
+          assert_equal true, @terminal.finished?
+          assert_nothing_raised do
+            timeout 2 do
+              while @terminal.stream.alive?
+              end
+            end
+          end
+          assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
+        end
+
+        def test_detached_session
+          result = nil
+          timeout 3 do
+            thread = @manager.exec_session "sh" do |_terminal|
+              @terminal = _terminal
+              _terminal.screen.lock {
+                _terminal.typein "echo $TERM\n"
+                _terminal.screen.wait_full_update {
+                  result = _terminal.screen.lines[1]
+                }
+              }
+            end
+            thread.join
+          end
+          assert_match %r{dumb\s*$}, result
+          assert_equal true, @terminal.finished?
+          timeout 1 do
+            while @terminal.stream.alive?
+            end
+          end
+          assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
+        end
+
+        def setup
+          @terminal = nil
+          @manager = Manager.new self
+        end
+
+        def teardown
+          @terminal.reset if @terminal
+          @manager = nil
+          @terminal = nil
+        end
       end
     end
   end

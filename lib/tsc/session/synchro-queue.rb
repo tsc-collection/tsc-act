@@ -53,10 +53,12 @@ require 'tsc/monitor.rb'
 require 'tsc/errors.rb'
 require 'tsc/synchro-queue.rb'
 
-module Session
-  class SynchroQueue < TSC::SynchroQueue
-    def read(size)
-      get
+module TSC
+  module Session
+    class SynchroQueue < TSC::SynchroQueue
+      def read(size)
+        get
+      end
     end
   end
 end
@@ -64,12 +66,14 @@ end
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  module Session
-    class SynchroQueueTest < Test::Unit::TestCase
-      def setup
-      end
+  module TSC
+    module Session
+      class SynchroQueueTest < Test::Unit::TestCase
+        def setup
+        end
 
-      def teardown
+        def teardown
+        end
       end
     end
   end

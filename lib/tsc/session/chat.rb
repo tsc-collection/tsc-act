@@ -52,39 +52,41 @@
 require 'tsc/trace'
 require 'tsc/array'
 
-module Session
-  class Chat
-    include TSC::Trace
+module TSC
+  module Session
+    class Chat
+      include TSC::Trace
 
-    attr_writer :time_to_complete, :prompt_delay, :eol
+      attr_writer :time_to_complete, :prompt_delay, :eol
 
-    def initialize(communicator,prompts,time_to_complete = 10,prompt_delay = 1)
-      @eol = "\r"
-      @communicator = communicator
-      @prompts = prompts
-      @screen = communicator.screen
-      @time_to_complete = time_to_complete
-      @prompt_delay = prompt_delay
-    end
-
-    def start(*responses,&action)
-      @screen.lock do
-        @prompts.collect_with(responses).each do |entry|
-          trace "Waiting for #{entry[0].inspect}..."
-          @screen.wait_prompt(*parse_prompt(*entry[0])) do 
-            trace "Sending #{entry[1].inspect}..."
-            @communicator.typein "#{entry[1]}#{@eol}" unless entry[1].nil?
-          end
-        end
-        action.call unless action.nil?
+      def initialize(communicator,prompts,time_to_complete = 10,prompt_delay = 1)
+        @eol = "\r"
+        @communicator = communicator
+        @prompts = prompts
+        @screen = communicator.screen
+        @time_to_complete = time_to_complete
+        @prompt_delay = prompt_delay
       end
-      self
-    end
 
-    private
-    #######
-    def parse_prompt(*args)
-      [ args[0], args[1] || @time_to_complete, args[2] || @prompt_delay ]
+      def start(*responses,&action)
+        @screen.lock do
+          @prompts.collect_with(responses).each do |entry|
+            trace "Waiting for #{entry[0].inspect}..."
+            @screen.wait_prompt(*parse_prompt(*entry[0])) do 
+              trace "Sending #{entry[1].inspect}..."
+              @communicator.typein "#{entry[1]}#{@eol}" unless entry[1].nil?
+            end
+          end
+          action.call unless action.nil?
+        end
+        self
+      end
+
+      private
+      #######
+      def parse_prompt(*args)
+        [ args[0], args[1] || @time_to_complete, args[2] || @prompt_delay ]
+      end
     end
   end
 end
@@ -93,83 +95,85 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
   require 'tsc/session/screen.rb'
 
-  module Session
-    class ChatTest < Test::Unit::TestCase
-      class MockScreen < Session::Screen
-        attr_reader :prompts
-        def initialize
-          super
-          @prompts = []
-        end
+  module TSC
+    module Session
+      class ChatTest < Test::Unit::TestCase
+        class MockScreen < Session::Screen
+          attr_reader :prompts
+          def initialize
+            super
+            @prompts = []
+          end
 
-        def wait_prompt(prompt,time_to_complete,time_no_update)
-          super prompt, time_to_complete, time_no_update
-          @prompts.push [ prompt, time_to_complete, time_no_update ]
-        end
-      end
-
-      class MockCommunicator
-        attr_reader :screen
-        attr_accessor :eol
-
-        def initialize
-          @screen = MockScreen.new
-        end
-
-        def typein(*args)
-          case args.to_s
-            when 'Login: ' then @screen.display "\r\n\nLogin: "
-            when "login#{@eol}" then @screen.display "login\r\nPassword: "
-            when "password#{@eol}" then @screen.display "\r\n\n\n$ "
+          def wait_prompt(prompt,time_to_complete,time_no_update)
+            super prompt, time_to_complete, time_no_update
+            @prompts.push [ prompt, time_to_complete, time_no_update ]
           end
         end
 
-        def show_screen
-          @screen.show do |line|
-            $stderr.puts line
+        class MockCommunicator
+          attr_reader :screen
+          attr_accessor :eol
+
+          def initialize
+            @screen = MockScreen.new
+          end
+
+          def typein(*args)
+            case args.to_s
+              when 'Login: ' then @screen.display "\r\n\nLogin: "
+              when "login#{@eol}" then @screen.display "login\r\nPassword: "
+              when "password#{@eol}" then @screen.display "\r\n\n\n$ "
+            end
+          end
+
+          def show_screen
+            @screen.show do |line|
+              $stderr.puts line
+            end
           end
         end
-      end
 
-      def test_login_and_eol
-        @chat.eol = "\r\n"
-        @communicator.eol = "\r\n"
+        def test_login_and_eol
+          @chat.eol = "\r\n"
+          @communicator.eol = "\r\n"
 
-        @chat.start('login', 'password')
-        assert_equal [
-          ['Login: ', 7, 1],
-          ['Password: ', 4, 2],
-          ['$ ', 2, 1]
-        ], @communicator.screen.prompts
-      end
+          @chat.start('login', 'password')
+          assert_equal [
+            ['Login: ', 7, 1],
+            ['Password: ', 4, 2],
+            ['$ ', 2, 1]
+          ], @communicator.screen.prompts
+        end
 
-      def test_different_timeouts
-        @communicator.typein 'Login: '
-        @chat.time_to_complete = 4
-        @chat.prompt_delay = 0
-        @chat.start('login', 'password')
-        assert_equal [
-          ['Login: ', 4, 0],
-          ['Password: ', 4, 2],
-          ['$ ', 2, 0]
-        ], @communicator.screen.prompts
-      end
+        def test_different_timeouts
+          @communicator.typein 'Login: '
+          @chat.time_to_complete = 4
+          @chat.prompt_delay = 0
+          @chat.start('login', 'password')
+          assert_equal [
+            ['Login: ', 4, 0],
+            ['Password: ', 4, 2],
+            ['$ ', 2, 0]
+          ], @communicator.screen.prompts
+        end
 
-      def setup
-        @communicator = MockCommunicator.new
-        @communicator.eol = "\r"
-        @chat = Session::Chat.new @communicator, [ 
-          'Login: ', 
-          [ 'Password: ', 4, 2], 
-          ['$ ',2]
-        ], 7, 1
-        @communicator.typein 'Login: '
-      end
+        def setup
+          @communicator = MockCommunicator.new
+          @communicator.eol = "\r"
+          @chat = Session::Chat.new @communicator, [ 
+            'Login: ', 
+            [ 'Password: ', 4, 2], 
+            ['$ ',2]
+          ], 7, 1
+          @communicator.typein 'Login: '
+        end
 
-      def teardown
-        @chat = nil
-        @communicator = nil
-        GC.start
+        def teardown
+          @chat = nil
+          @communicator = nil
+          GC.start
+        end
       end
     end
   end

@@ -51,38 +51,40 @@
 
 require 'tsc/trace'
 
-module Session
-  class LineBuffer
-    include TSC::Trace
+module TSC
+  module Session
+    class LineBuffer
+      include TSC::Trace
 
-    def debug
-      false
-    end
-
-    def initialize(condition)
-      @condition = condition
-      @data = []
-    end
-
-    def push(line)
-      trace line
-      @data.push line
-    end
-
-    def each_newline(time_no_update = nil)
-      trace
-      if block_given?
-        while true
-          trace "data", @data
-          @data.each { |_line|
-            return true unless yield _line
-          }
-          @data.clear
-          trace "about to wait"
-          break unless @condition.wait time_no_update
-        end
+      def debug
+        false
       end
-      false
+
+      def initialize(condition)
+        @condition = condition
+        @data = []
+      end
+
+      def push(line)
+        trace line
+        @data.push line
+      end
+
+      def each_newline(time_no_update = nil)
+        trace
+        if block_given?
+          while true
+            trace "data", @data
+            @data.each { |_line|
+              return true unless yield _line
+            }
+            @data.clear
+            trace "about to wait"
+            break unless @condition.wait time_no_update
+          end
+        end
+        false
+      end
     end
   end
 end

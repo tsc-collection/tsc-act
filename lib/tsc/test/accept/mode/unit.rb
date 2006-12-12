@@ -49,9 +49,9 @@
   
 =end
 
-require 'test/accept/runner.rb'
+require 'tsc/test/accept/runner.rb'
 
-class Runner < Test::Accept::Runner
+class Runner < TSC::Test::Accept::Runner
   def start
     $: << '.'
     ARGV.each do |_argument|

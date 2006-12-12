@@ -52,10 +52,12 @@
 require 'tsc/session/screen.rb'
 require 'tsc/errors.rb'
 
-module Session
-  class MvsScreen < Session::Screen
-    def foreach_newline(*args)
-      raise TSC::NotImplementedError, 'foreach_newline'
+module TSC
+  module Session
+    class MvsScreen < Session::Screen
+      def foreach_newline(*args)
+        raise TSC::NotImplementedError, 'foreach_newline'
+      end
     end
   end
 end
@@ -63,20 +65,22 @@ end
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  module Session
-    class MvsScreenTest < Test::Unit::TestCase
-      def test_foreach_newline
-        assert_raises TSC::NotImplementedError do
-          @screen.foreach_newline
+  module TSC
+    module Session
+      class MvsScreenTest < Test::Unit::TestCase
+        def test_foreach_newline
+          assert_raises TSC::NotImplementedError do
+            @screen.foreach_newline
+          end
         end
-      end
 
-      def setup
-        @screen = MvsScreen.new
-      end
+        def setup
+          @screen = MvsScreen.new
+        end
 
-      def teardown
-        @screen = nil
+        def teardown
+          @screen = nil
+        end
       end
     end
   end

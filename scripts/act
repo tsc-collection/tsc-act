@@ -86,12 +86,12 @@ class Application < TSC::Application
 
       mode = @options['mode']
       if mode
-        runner = File.join Test::Accept::Runner.mode_directory, mode
+        runner = File.join TSC::Test::Accept::Runner.mode_directory, mode
       else
         runner = ARGV.shift
       end
       unless runner
-        do_and_exit { Test::Accept::Runtime.instance.interactive } if @options['interactive']
+        do_and_exit { TSC::Test::Accept::Runtime.instance.interactive } if @options['interactive']
         raise 'No test runner specified'
       end
 
@@ -99,7 +99,7 @@ class Application < TSC::Application
       $: << File.dirname(runner_path)
 
       begin
-        Test::Accept::Runner.load(runner_path).new(@options).start
+        TSC::Test::Accept::Runner.load(runner_path).new(@options).start
       rescue StandardError, Interrupt, SignalException => exception
         raise TSC::Error.new(File.basename(runner), exception)
       end
@@ -121,7 +121,7 @@ class Application < TSC::Application
   end
 
   def print_mode_directory
-    $stdout.puts Test::Accept::Runner.mode_directory
+    $stdout.puts TSC::Test::Accept::Runner.mode_directory
   end
 
   def print_loadpath

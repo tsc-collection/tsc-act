@@ -53,123 +53,125 @@ require 'forwardable'
 require 'tsc/synchro-queue.rb'
 require 'tsc/errors.rb'
 
-module Session
-  class Terminal
-    class TerminalError < RuntimeError
-      def initialize
-        super "Terminal not operatable"
+module TSC
+  module Session
+    class Terminal
+      class TerminalError < RuntimeError
+        def initialize
+          super "Terminal not operatable"
+        end
       end
-    end
 
-    extend Forwardable
+      extend Forwardable
 
-    attr_reader :stream, :emulator
-    attr_reader :data_read_thread, :screen_update_thread, :screen_check_thread
-    def_delegators :@data_queue, :high_water_mark
-    def_delegators :@emulator, :screen, :term
+      attr_reader :stream, :emulator
+      attr_reader :data_read_thread, :screen_update_thread, :screen_check_thread
+      def_delegators :@data_queue, :high_water_mark
+      def_delegators :@emulator, :screen, :term
 
-    def initialize(stream, emulator)
-      @error_handler_thread = Thread.current
+      def initialize(stream, emulator)
+        @error_handler_thread = Thread.current
 
-      @stream = stream
-      @emulator = emulator
-      @emulator.screen.newline_assumes_return = true
+        @stream = stream
+        @emulator = emulator
+        @emulator.screen.newline_assumes_return = true
 
-      @finished = false
+        @finished = false
 
-      @data_queue = allocate_blocking_synchro_queue
-      @data_read_thread = nil
-      @screen_update_thread = nil
-      @screen_check_thread = nil
-    end
+        @data_queue = allocate_blocking_synchro_queue
+        @data_read_thread = nil
+        @screen_update_thread = nil
+        @screen_check_thread = nil
+      end
 
-    def finished?
-      @finished
-    end
+      def finished?
+        @finished
+      end
 
-    def start
-      raise TerminalError if @finished == true
+      def start
+        raise TerminalError if @finished == true
 
-      @data_read_thread ||= start_data_thread
-      @screen_update_thread ||= start_update_thread
-      @data_read_thread.priority = 10
-    end
+        @data_read_thread ||= start_data_thread
+        @screen_update_thread ||= start_update_thread
+        @data_read_thread.priority = 10
+      end
 
-    def stop
-      @data_read_thread = stop_thread @data_read_thread
-      @screen_update_thread = stop_thread @screen_update_thread
-      stop_screen_check
-    end
+      def stop
+        @data_read_thread = stop_thread @data_read_thread
+        @screen_update_thread = stop_thread @screen_update_thread
+        stop_screen_check
+      end
 
-    def reset
-      stop
-      @stream.reset
-      @finished = true
-    end
+      def reset
+        stop
+        @stream.reset
+        @finished = true
+      end
 
-    def stop_screen_check
-      @screen_check_thread = stop_thread @screen_check_thread
-    end
+      def stop_screen_check
+        @screen_check_thread = stop_thread @screen_check_thread
+      end
 
-    def start_screen_check(ios = $stderr)
-      raise TerminalError if @finished == true
-      stop_screen_check
-      @screen_check_thread ||= Thread.new do
-        pass_errors @error_handler_thread do
-          loop do
-            screen.wait_update do
-              ios.puts 'Screen updated:'
-              screen.show { |line| ios.puts %Q{  #{line}} }
+      def start_screen_check(ios = $stderr)
+        raise TerminalError if @finished == true
+        stop_screen_check
+        @screen_check_thread ||= Thread.new do
+          pass_errors @error_handler_thread do
+            loop do
+              screen.wait_update do
+                ios.puts 'Screen updated:'
+                screen.show { |line| ios.puts %Q{  #{line}} }
+              end
+            end
+          end
+        end
+        @screen_check_thread.priority = -5
+      end
+
+      def typein(*keys)
+        raise TerminalError if @finished == true
+        keys.each do |_key|
+          @stream.write @emulator.key_sequence(_key)
+        end
+      end
+
+      private
+      #######
+      def allocate_blocking_synchro_queue
+        SynchroQueue.new true
+      end
+
+      def start_data_thread
+        Thread.new do
+          pass_errors @error_handler_thread do
+            loop do
+              data = @stream.get_available_data
+              unless data.nil?
+                @data_queue.put data
+              else
+                @finished = true
+                thread, @data_read_thread = @data_read_thread, nil
+                thread.exit
+              end
             end
           end
         end
       end
-      @screen_check_thread.priority = -5
-    end
 
-    def typein(*keys)
-      raise TerminalError if @finished == true
-      keys.each do |_key|
-        @stream.write @emulator.key_sequence(_key)
-      end
-    end
-
-    private
-    #######
-    def allocate_blocking_synchro_queue
-      SynchroQueue.new true
-    end
-
-    def start_data_thread
-      Thread.new do
-        pass_errors @error_handler_thread do
-          loop do
-            data = @stream.get_available_data
-            unless data.nil?
-              @data_queue.put data
-            else
-              @finished = true
-              thread, @data_read_thread = @data_read_thread, nil
-              thread.exit
+      def start_update_thread
+        Thread.new do
+          pass_errors @error_handler_thread do
+            loop do
+              @emulator.process_data @data_queue.get
             end
           end
         end
       end
-    end
 
-    def start_update_thread
-      Thread.new do
-        pass_errors @error_handler_thread do
-          loop do
-            @emulator.process_data @data_queue.get
-          end
-        end
+      def stop_thread(thread)
+        thread.kill unless thread.nil?
+        nil
       end
-    end
-
-    def stop_thread(thread)
-      thread.kill unless thread.nil?
-      nil
     end
   end
 end
@@ -181,131 +183,133 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'tsc/session/dumb-emulator.rb'
   require 'tsc/session/screen.rb'
   
-  module Session
-    class TerminalTest < Test::Unit::TestCase
-      class MockStream
-        attr_reader :incoming
+  module TSC
+    module Session
+      class TerminalTest < Test::Unit::TestCase
+        class MockStream
+          attr_reader :incoming
 
-        def initialize
-          @outgoing = SynchroQueue.new true
-          @incoming = []
-          @reset = false
+          def initialize
+            @outgoing = SynchroQueue.new true
+            @incoming = []
+            @reset = false
+          end
+
+          def reset
+            @reset = true
+          end
+
+          def reset?
+            @reset
+          end
+
+          def get_available_data
+            @outgoing.get
+          end
+
+          def write(*args)
+            @incoming.concat args
+          end
+
+          def data(*args)
+            @outgoing.put *args
+          end
         end
 
-        def reset
-          @reset = true
+        def test_display
+          with_data "abcdef" do
+            assert_equal "abcdef", @terminal.screen.lines[0].strip
+          end
         end
 
-        def reset?
-          @reset
+        def test_high_water_mark
+          assert_equal 0, @terminal.high_water_mark
+
+          with_data "abcdef" do
+            assert_equal 1, @terminal.high_water_mark
+          end
+
+          with_locked_screen_and_data "abcdef", "zzzzzz" do
+            assert_equal 2, @terminal.high_water_mark
+          end
+          
+          with_locked_screen_and_data "abcdef", "zzzzzz" do
+            assert_equal 2, @terminal.high_water_mark
+          end
+
+          with_locked_screen_and_data "abcdef", "zzzzzz", "bbbbb" do
+            assert_equal 3, @terminal.high_water_mark
+          end
         end
 
-        def get_available_data
-          @outgoing.get
+        def test_typein_string
+          @terminal.typein "abcdef"
+          assert_equal [ "abcdef" ], @stream.incoming
         end
 
-        def write(*args)
-          @incoming.concat args
+        def test_typein_keys
+          @terminal.typein Key::F1, Key::F2
+          assert_equal [ "<F1>", "<F2>" ], @stream.incoming
         end
 
-        def data(*args)
-          @outgoing.put *args
-        end
-      end
-
-      def test_display
-        with_data "abcdef" do
-          assert_equal "abcdef", @terminal.screen.lines[0].strip
-        end
-      end
-
-      def test_high_water_mark
-        assert_equal 0, @terminal.high_water_mark
-
-        with_data "abcdef" do
-          assert_equal 1, @terminal.high_water_mark
+        def test_finished
+          assert_equal false, @terminal.finished?
+          @stream.data nil
+          assert_equal true, @terminal.finished?
+          assert_equal nil, @terminal.data_read_thread
+          assert_raises(Session::Terminal::TerminalError) {
+            @terminal.typein "\n"
+          }
         end
 
-        with_locked_screen_and_data "abcdef", "zzzzzz" do
-          assert_equal 2, @terminal.high_water_mark
+        def test_reset
+          assert_equal false, @stream.reset?
+          @terminal.reset
+          assert_equal true, @terminal.finished?
+          assert_equal true, @stream.reset?
+          assert_equal nil, @terminal.data_read_thread
+          assert_equal nil, @terminal.screen_update_thread
+          assert_equal nil, @terminal.screen_check_thread
+          assert_raises(Session::Terminal::TerminalError) {
+            @terminal.typein "\n"
+          }
+          assert_raises(Session::Terminal::TerminalError) {
+            @terminal.start
+          }
         end
-        
-        with_locked_screen_and_data "abcdef", "zzzzzz" do
-          assert_equal 2, @terminal.high_water_mark
-        end
 
-        with_locked_screen_and_data "abcdef", "zzzzzz", "bbbbb" do
-          assert_equal 3, @terminal.high_water_mark
-        end
-      end
-
-      def test_typein_string
-        @terminal.typein "abcdef"
-        assert_equal [ "abcdef" ], @stream.incoming
-      end
-
-      def test_typein_keys
-        @terminal.typein Key::F1, Key::F2
-        assert_equal [ "<F1>", "<F2>" ], @stream.incoming
-      end
-
-      def test_finished
-        assert_equal false, @terminal.finished?
-        @stream.data nil
-        assert_equal true, @terminal.finished?
-        assert_equal nil, @terminal.data_read_thread
-        assert_raises(Session::Terminal::TerminalError) {
-          @terminal.typein "\n"
-        }
-      end
-
-      def test_reset
-        assert_equal false, @stream.reset?
-        @terminal.reset
-        assert_equal true, @terminal.finished?
-        assert_equal true, @stream.reset?
-        assert_equal nil, @terminal.data_read_thread
-        assert_equal nil, @terminal.screen_update_thread
-        assert_equal nil, @terminal.screen_check_thread
-        assert_raises(Session::Terminal::TerminalError) {
-          @terminal.typein "\n"
-        }
-        assert_raises(Session::Terminal::TerminalError) {
-          @terminal.start
-        }
-      end
-
-      def with_data(*data)
-        timeout 3 do
-          @terminal.screen.lock do
-            @stream.data *data
-            @terminal.screen.wait_update do
-              yield if block_given?
+        def with_data(*data)
+          timeout 3 do
+            @terminal.screen.lock do
+              @stream.data *data
+              @terminal.screen.wait_update do
+                yield if block_given?
+              end
             end
           end
         end
-      end
 
-      def with_locked_screen_and_data(*data)
-        sleep 0.1
-        @terminal.screen.lock do
-          @stream.data *data
-          yield if block_given?
+        def with_locked_screen_and_data(*data)
+          sleep 0.1
+          @terminal.screen.lock do
+            @stream.data *data
+            yield if block_given?
+          end
         end
-      end
 
-      def setup
-        @stream = MockStream.new
-        @emulator = DumbEmulator.new Screen.new
-        @terminal = Terminal.new @stream, @emulator
-        @terminal.start
-      end
+        def setup
+          @stream = MockStream.new
+          @emulator = DumbEmulator.new Screen.new
+          @terminal = Terminal.new @stream, @emulator
+          @terminal.start
+        end
 
-      def teardown
-        @terminal.reset
-        @terminal = nil
-        @stream = nil
-        @emulator = nil
+        def teardown
+          @terminal.reset
+          @terminal = nil
+          @stream = nil
+          @emulator = nil
+        end
       end
     end
   end

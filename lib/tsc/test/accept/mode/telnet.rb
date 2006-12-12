@@ -55,11 +55,11 @@ require 'tsc/session/manager.rb'
 require 'tsc/session/screen.rb'
 require 'tsc/session/vt100-emulator.rb'
 
-class Runner < Test::Accept::Runner
+class Runner < TSC::Test::Accept::Runner
   def start
-    @manager = Session::Manager.new self
+    @manager = TSC::Session::Manager.new self
 
-    host = ARGV.shift or raise 'No host specified'
+    host = options['host'] || ARGV.shift or raise 'No host specified'
     user = options['user'] or raise 'No user name specified'
     password = options['password']
     prompt = Regexp.new(options['prompt'] || "[$%#>]\s+$")
@@ -69,14 +69,14 @@ class Runner < Test::Accept::Runner
         _terminal.typein "TERM='#{_terminal.term}' export TERM\n"
         _terminal.screen.wait_prompt prompt, 10
       end
-      Test::Accept::Runtime.instance.start _terminal, options
+      TSC::Test::Accept::Runtime.instance.start _terminal, options
     end
 
     ensure_thread_completion thread
   end
 
   def emulator
-    emulator = Session::Vt100Emulator.new Session::Screen.new
+    emulator = TSC::Session::Vt100Emulator.new TSC::Session::Screen.new
     emulator.tolerant = false
     emulator
   end

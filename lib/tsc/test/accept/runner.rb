@@ -52,39 +52,41 @@
 require 'tsc/errors.rb'
 require 'tsc/loadable.rb'
 
-module Test
-  module Accept
-    class Runner
-      class << self
-        include TSC::Loadable
-      end
-
-      attr_reader :options
-
-      def initialize(options)
-        @options = options
-      end
-      def self.mode_directory
-        File.join File.dirname(__FILE__), 'mode'
-      end
-
-      def start
-        raise TSC::NotImplementedError, :start
-      end
-
-      protected
-      #########
-      def ensure_thread_completion(thread)
-        errors = []
-        begin
-          thread.join
-        rescue StandardError, Interrupt, SignalException => exception
-          thread.exit if errors.empty?
-          errors.push exception
-
-          retry
+module TSC
+  module Test
+    module Accept
+      class Runner
+        class << self
+          include TSC::Loadable
         end
-        raise TSC::CompoundError.new(*errors) unless errors.empty?
+
+        attr_reader :options
+
+        def initialize(options)
+          @options = options
+        end
+        def self.mode_directory
+          File.join File.dirname(__FILE__), 'mode'
+        end
+
+        def start
+          raise TSC::NotImplementedError, :start
+        end
+
+        protected
+        #########
+        def ensure_thread_completion(thread)
+          errors = []
+          begin
+            thread.join
+          rescue StandardError, Interrupt, SignalException => exception
+            thread.exit if errors.empty?
+            errors.push exception
+
+            retry
+          end
+          raise TSC::CompoundError.new(*errors) unless errors.empty?
+        end
       end
     end
   end

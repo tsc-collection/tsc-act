@@ -49,158 +49,162 @@
   
 =end
 
-module Session
-  class Key
-    attr_reader :name, :value
+module TSC
+  module Session
+    class Key
+      attr_reader :name, :value
 
-    def initialize(name,value,visitor_method)
-      @name = name
-      @value = value || "<#{name}>"
-      @visitor_method = visitor_method
-    end
+      def initialize(name,value,visitor_method)
+        @name = name
+        @value = value || "<#{name}>"
+        @visitor_method = visitor_method
+      end
 
-    def accept(visitor,*args)
-      visitor.send @visitor_method, self, *args
-    end
+      def accept(visitor,*args)
+        visitor.send @visitor_method, self, *args
+      end
 
-    def to_s
-      @value
-    end
+      def to_s
+        @value
+      end
 
-    def to_key
-      self
-    end
+      def to_key
+        self
+      end
 
-    def self.convert(arg)
-      arg.respond_to?(:to_key) ? arg.to_key : self.text(arg)
-    end
+      def self.convert(arg)
+        arg.respond_to?(:to_key) ? arg.to_key : self.text(arg)
+      end
 
-    def self.text(string)
-      new('TEXT',string.to_s,'visit_TEXT'.intern)
-    end
+      def self.text(string)
+        new('TEXT',string.to_s,'visit_TEXT'.intern)
+      end
 
-    def self.define_key(*args)
-      args.each do |key|
-        Array(key).each do |key|
-          name, value = Array(key)
-          const_set name, new("#{name}",value,"visit_#{name}".intern)
+      def self.define_key(*args)
+        args.each do |key|
+          Array(key).each do |key|
+            name, value = Array(key)
+            const_set name, new("#{name}",value,"visit_#{name}".intern)
+          end
         end
       end
+
+      define_key :BELL => "\a"
+      define_key :ESCAPE => "\e"
+      define_key :FORMFEED => "\f"
+      define_key :BACKSPACE => "\b"
+      define_key :SPACE => "\s"
+      define_key :TAB => "\t"
+      define_key :ENTER => "\n"
+      define_key :RETURN => "\r"
+      define_key :NEWLINE => "\n"
+
+      define_key :UP, :DOWN, :LEFT, :RIGHT, :PAGEUP, :PAGEDOWN
+      define_key :KP_HOME, :KP_END, :INSERT, :DELETE, :BACKTAB
+      define_key :F1, :F2, :F3, :F4, :F5, :F6, :F7, :F8, :F9, :F10, :F11, :F12
+
+      define_key :BREAK, :DROPLINE, :SCREEN
+
+      private_class_method :new
+      freeze
     end
-
-    define_key :BELL => "\a"
-    define_key :ESCAPE => "\e"
-    define_key :FORMFEED => "\f"
-    define_key :BACKSPACE => "\b"
-    define_key :SPACE => "\s"
-    define_key :TAB => "\t"
-    define_key :ENTER => "\n"
-    define_key :RETURN => "\r"
-    define_key :NEWLINE => "\n"
-
-    define_key :UP, :DOWN, :LEFT, :RIGHT, :PAGEUP, :PAGEDOWN
-    define_key :KP_HOME, :KP_END, :INSERT, :DELETE, :BACKTAB
-    define_key :F1, :F2, :F3, :F4, :F5, :F6, :F7, :F8, :F9, :F10, :F11, :F12
-
-    define_key :BREAK, :DROPLINE, :SCREEN
-
-    private_class_method :new
-    freeze
   end
 end
 
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  module Session
-    class KeyTest < Test::Unit::TestCase
-      def test_key_names
-        assert_equal Key::BELL.name, 'BELL'
-        assert_equal Key::ESCAPE.name, 'ESCAPE'
-        assert_equal Key::FORMFEED.name, 'FORMFEED'
-        assert_equal Key::BACKSPACE.name, 'BACKSPACE'
-        assert_equal Key::SPACE.name, 'SPACE'
-        assert_equal Key::TAB.name, 'TAB'
-        assert_equal Key::BACKTAB.name, 'BACKTAB'
-        assert_equal Key::ENTER.name, 'ENTER'
-        assert_equal Key::RETURN.name, 'RETURN'
-        assert_equal Key::NEWLINE.name, 'NEWLINE'
-        assert_equal Key::UP.name, 'UP'
-        assert_equal Key::DOWN.name, 'DOWN'
-        assert_equal Key::LEFT.name, 'LEFT'
-        assert_equal Key::RIGHT.name, 'RIGHT'
-        assert_equal Key::PAGEUP.name, 'PAGEUP'
-        assert_equal Key::PAGEDOWN.name, 'PAGEDOWN'
-        assert_equal Key::KP_HOME.name, 'KP_HOME'
-        assert_equal Key::KP_END.name, 'KP_END'
-        assert_equal Key::INSERT.name, 'INSERT'
-        assert_equal Key::DELETE.name, 'DELETE'
-        assert_equal Key::F1.name, 'F1'
-        assert_equal Key::F2.name, 'F2'
-        assert_equal Key::F3.name, 'F3'
-        assert_equal Key::F4.name, 'F4'
-        assert_equal Key::F5.name, 'F5'
-        assert_equal Key::F6.name, 'F6'
-        assert_equal Key::F7.name, 'F7'
-        assert_equal Key::F8.name, 'F8'
-        assert_equal Key::F9.name, 'F9'
-        assert_equal Key::F10.name, 'F10'
-        assert_equal Key::F11.name, 'F11'
-        assert_equal Key::F12.name, 'F12'
-        assert_equal Key::BREAK.name, 'BREAK'
-        assert_equal Key::DROPLINE.name, 'DROPLINE'
-      end 
+  module TSC
+    module Session
+      class KeyTest < Test::Unit::TestCase
+        def test_key_names
+          assert_equal Key::BELL.name, 'BELL'
+          assert_equal Key::ESCAPE.name, 'ESCAPE'
+          assert_equal Key::FORMFEED.name, 'FORMFEED'
+          assert_equal Key::BACKSPACE.name, 'BACKSPACE'
+          assert_equal Key::SPACE.name, 'SPACE'
+          assert_equal Key::TAB.name, 'TAB'
+          assert_equal Key::BACKTAB.name, 'BACKTAB'
+          assert_equal Key::ENTER.name, 'ENTER'
+          assert_equal Key::RETURN.name, 'RETURN'
+          assert_equal Key::NEWLINE.name, 'NEWLINE'
+          assert_equal Key::UP.name, 'UP'
+          assert_equal Key::DOWN.name, 'DOWN'
+          assert_equal Key::LEFT.name, 'LEFT'
+          assert_equal Key::RIGHT.name, 'RIGHT'
+          assert_equal Key::PAGEUP.name, 'PAGEUP'
+          assert_equal Key::PAGEDOWN.name, 'PAGEDOWN'
+          assert_equal Key::KP_HOME.name, 'KP_HOME'
+          assert_equal Key::KP_END.name, 'KP_END'
+          assert_equal Key::INSERT.name, 'INSERT'
+          assert_equal Key::DELETE.name, 'DELETE'
+          assert_equal Key::F1.name, 'F1'
+          assert_equal Key::F2.name, 'F2'
+          assert_equal Key::F3.name, 'F3'
+          assert_equal Key::F4.name, 'F4'
+          assert_equal Key::F5.name, 'F5'
+          assert_equal Key::F6.name, 'F6'
+          assert_equal Key::F7.name, 'F7'
+          assert_equal Key::F8.name, 'F8'
+          assert_equal Key::F9.name, 'F9'
+          assert_equal Key::F10.name, 'F10'
+          assert_equal Key::F11.name, 'F11'
+          assert_equal Key::F12.name, 'F12'
+          assert_equal Key::BREAK.name, 'BREAK'
+          assert_equal Key::DROPLINE.name, 'DROPLINE'
+        end 
 
-      def test_accept
-        keys = [ Key::F1, Key::BREAK ]
-        
-        assert !@depot['F1']
-        assert !@depot['BREAK']
+        def test_accept
+          keys = [ Key::F1, Key::BREAK ]
+          
+          assert !@depot['F1']
+          assert !@depot['BREAK']
 
-        keys.each do |key|
-          key.accept(self)
+          keys.each do |key|
+            key.accept(self)
+          end
+
+          assert @depot['F1']
+          assert @depot['BREAK']
         end
 
-        assert @depot['F1']
-        assert @depot['BREAK']
-      end
+        def test_text
+          key = Key.text("abcdef")
+          assert_equal 'TEXT', key.name
+          assert_equal 'abcdef',key.value
+          assert !@depot['TEXT']
+          key.accept(self)
+          assert_equal 'abcdef', @depot['TEXT']
+        end
 
-      def test_text
-        key = Key.text("abcdef")
-        assert_equal 'TEXT', key.name
-        assert_equal 'abcdef',key.value
-        assert !@depot['TEXT']
-        key.accept(self)
-        assert_equal 'abcdef', @depot['TEXT']
-      end
+        def test_convert
+          assert_equal Key::F1, Key.convert(Key::F1)
+          assert_equal Key::ENTER, Key.convert(Key::ENTER)
+          assert_equal 'TEXT', Key.convert('abcdef').name
+          assert_equal 'abcdef', Key.convert('abcdef').value
+        end
 
-      def test_convert
-        assert_equal Key::F1, Key.convert(Key::F1)
-        assert_equal Key::ENTER, Key.convert(Key::ENTER)
-        assert_equal 'TEXT', Key.convert('abcdef').name
-        assert_equal 'abcdef', Key.convert('abcdef').value
-      end
+        def setup
+          @depot = Hash.new
+        end
 
-      def setup
-        @depot = Hash.new
-      end
+        def teardown
+          @depot = nil
+        end
 
-      def teardown
-        @depot = nil
-      end
+        private
+        #######
+        def visit_F1(key)
+          @depot['F1'] = true
+        end
 
-      private
-      #######
-      def visit_F1(key)
-        @depot['F1'] = true
-      end
+        def visit_BREAK(key)
+          @depot['BREAK'] = true
+        end
 
-      def visit_BREAK(key)
-        @depot['BREAK'] = true
-      end
-
-      def visit_TEXT(key)
-        @depot['TEXT'] = key.value
+        def visit_TEXT(key)
+          @depot['TEXT'] = key.value
+        end
       end
     end
   end

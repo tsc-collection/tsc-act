@@ -49,43 +49,45 @@
   
 =end
 
-module Session
-  module Mvs
-    class PtsInfo
-      attr_reader :customer, :product, :status, :date, :priority
+module TSC
+  module Session
+    module Mvs
+      class PtsInfo
+        attr_reader :customer, :product, :status, :date, :priority
 
-      def initialize(*args)
-        @name, @customer, @product, *rest = *args
-        @status, @date, @priority, *rest = *rest
-        @description, *rest = *rest
-      end
+        def initialize(*args)
+          @name, @customer, @product, *rest = *args
+          @status, @date, @priority, *rest = *rest
+          @description, *rest = *rest
+        end
 
-      def pts?
-        item? 'PTS'
-      end
+        def pts?
+          item? 'PTS'
+        end
 
-      def prj?
-        item? 'PRJ'
-      end
-      
-      def item?(label)
-        [ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
-      end
+        def prj?
+          item? 'PRJ'
+        end
+        
+        def item?(label)
+          [ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
+        end
 
-      def name
-        @name.to_s.upcase
-      end
+        def name
+          @name.to_s.upcase
+        end
 
-      def description
-        @description.to_s.upcase
-      end
+        def description
+          @description.to_s.upcase
+        end
 
-      def number
-        @name.scan(%r{\d+$}).first.to_i
-      end
+        def number
+          @name.scan(%r{\d+$}).first.to_i
+        end
 
-      def to_s
-        "%8.8-s - %s" % [ name, description ]
+        def to_s
+          "%8.8-s - %s" % [ name, description ]
+        end
       end
     end
   end
@@ -94,20 +96,22 @@ end
 if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  module Session
-    module Mvs
-      class PtsInfoTest < Test::Unit::TestCase
-        def test_pts_type
-          item = PtsInfo.new 'pts0456'
-          assert_equal 'PTS0456', item.name
-          assert_equal '0456', item.pts?
+  module TSC
+    module Session
+      module Mvs
+        class PtsInfoTest < Test::Unit::TestCase
+          def test_pts_type
+            item = PtsInfo.new 'pts0456'
+            assert_equal 'PTS0456', item.name
+            assert_equal '0456', item.pts?
 
-          assert_equal nil, item.prj?
-        end
-        
-        def test_to_s
-          item = PtsInfo.new 'pts000', nil, nil, nil, nil, nil, 'test entry'
-          assert_equal '"PTS000   - TEST ENTRY"', item.to_s.inspect
+            assert_equal nil, item.prj?
+          end
+          
+          def test_to_s
+            item = PtsInfo.new 'pts000', nil, nil, nil, nil, nil, 'test entry'
+            assert_equal '"PTS000   - TEST ENTRY"', item.to_s.inspect
+          end
         end
       end
     end

@@ -52,23 +52,25 @@
 require 'tsc/errors.rb'
 require 'tsc/loadable.rb'
 
-module Test
-  module Accept
-    class Action
-      class << self
-        include TSC::Loadable
-      end
+module TSC
+  module Test
+    module Accept
+      class Action
+        class << self
+          include TSC::Loadable
+        end
 
-      attr_reader :options, :terminal, :screen
+        attr_reader :options, :terminal, :screen
 
-      def initialize(terminal, options)
-        @options = options
-        @terminal = terminal
-        @screen = terminal.screen
-      end
+        def initialize(terminal, options)
+          @options = options
+          @terminal = terminal
+          @screen = terminal.screen
+        end
 
-      def start
-        raise TSC::NotImplementedError, :start
+        def start
+          raise TSC::NotImplementedError, :start
+        end
       end
     end
   end

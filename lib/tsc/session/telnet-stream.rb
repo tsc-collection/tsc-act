@@ -52,22 +52,24 @@
 require 'net/telnet'
 require 'timeout'
 
-module Session
-  class TelnetStream < Net::Telnet
-    def get_available_data
-      begin
-        data = waitfor /./
-      rescue TimeoutError
-        retry
-      rescue
-        data = nil
+module TSC
+  module Session
+    class TelnetStream < Net::Telnet
+      def get_available_data
+        begin
+          data = waitfor /./
+        rescue TimeoutError
+          retry
+        rescue
+          data = nil
+        end
+        data
       end
-      data
-    end
 
-    def reset
-      self.close_read
-      self.close_write
+      def reset
+        self.close_read
+        self.close_write
+      end
     end
   end
 end

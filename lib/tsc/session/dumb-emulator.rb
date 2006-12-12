@@ -52,20 +52,22 @@
 require 'tsc/session/emulator.rb'
 require 'tsc/session/screen.rb'
 
-module Session
-  class DumbEmulator < Emulator
-    def initialize(screen)
-      super :dumb, screen
-    end
-
-    def process_data(*args)
-      args.each do |_arg|
-        screen.display _arg
+module TSC
+  module Session
+    class DumbEmulator < Emulator
+      def initialize(screen)
+        super :dumb, screen
       end
-    end
 
-    def key_sequence(key)
-      key.to_s
+      def process_data(*args)
+        args.each do |_arg|
+          screen.display _arg
+        end
+      end
+
+      def key_sequence(key)
+        key.to_s
+      end
     end
   end
 end
@@ -75,28 +77,30 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'tsc/session/screen.rb'
   require 'tsc/session/key.rb'
 
-  module Session
-    class DumbEmulatorTest < Test::Unit::TestCase
-      def test_term
-        assert_equal 'dumb', @emulator.term
-      end
+  module TSC
+    module Session
+      class DumbEmulatorTest < Test::Unit::TestCase
+        def test_term
+          assert_equal 'dumb', @emulator.term
+        end
 
-      def test_key_sequence
-        assert_equal 'teststring', @emulator.key_sequence(:teststring)
-        assert_equal '<F6>', @emulator.key_sequence(Session::Key::F6)
-      end
+        def test_key_sequence
+          assert_equal 'teststring', @emulator.key_sequence(:teststring)
+          assert_equal '<F6>', @emulator.key_sequence(Session::Key::F6)
+        end
 
-      def test_process_data
-        @emulator.process_data 'hello', :World
-        assert_match %r{^helloWorld\s*}, @emulator.screen.lines[0]
-      end
+        def test_process_data
+          @emulator.process_data 'hello', :World
+          assert_match %r{^helloWorld\s*}, @emulator.screen.lines[0]
+        end
 
-      def setup
-        @emulator = DumbEmulator.new Screen.new
-      end
+        def setup
+          @emulator = DumbEmulator.new Screen.new
+        end
 
-      def teardown
-        @emulator = nil
+        def teardown
+          @emulator = nil
+        end
       end
     end
   end

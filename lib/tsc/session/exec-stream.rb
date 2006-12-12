@@ -52,27 +52,29 @@
 require 'tsc/tty-process.rb'
 require 'timeout'
 
-module Session
-  class ExecStream < TSC::TtyProcess
-    def get_available_data
-      begin
-        data = self.read(1)
-      rescue
-        data = nil
-      end
-      data
-    end
-
-    def reset
-      self.close
-      self.terminate
-      begin
-        timeout 2 do
-          while self.alive?
-          end
+module TSC
+  module Session
+    class ExecStream < TSC::TtyProcess
+      def get_available_data
+        begin
+          data = self.read(1)
+        rescue
+          data = nil
         end
-      rescue TimeoutError
-        self.kill
+        data
+      end
+
+      def reset
+        self.close
+        self.terminate
+        begin
+          timeout 2 do
+            while self.alive?
+            end
+          end
+        rescue TimeoutError
+          self.kill
+        end
       end
     end
   end

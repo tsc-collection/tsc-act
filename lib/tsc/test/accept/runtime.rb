@@ -57,46 +57,48 @@ require 'tsc/session/manager.rb'
 require 'tsc/session/dumb-emulator.rb'
 require 'tsc/session/vt100-emulator.rb'
 
-module Test
-  module Accept
-    class Runtime
-      include Singleton
-      include Session
+module TSC
+  module Test
+    module Accept
+      class Runtime
+        include Singleton
+        include Session
 
-      attr_reader :terminal, :screen, :options
+        attr_reader :terminal, :screen, :options
 
-      def start(terminal, options)
-        @terminal = terminal
-        @screen = terminal.screen
-        @options = options
+        def start(terminal, options)
+          @terminal = terminal
+          @screen = terminal.screen
+          @options = options
 
-        action = ARGV.shift
-        raise 'No action specified' unless action or options['interactive']
+          action = ARGV.shift
+          raise 'No action specified' unless action or options['interactive']
 
-        if action
-          Test::Accept::Action.load(action).new(@terminal, options).start
+          if action
+            Test::Accept::Action.load(action).new(@terminal, options).start
+          end
+
+          if options['interactive']
+            @terminal.screen.show
+            @terminal.start_screen_check
+
+            interactive
+          end
         end
 
-        if options['interactive']
-          @terminal.screen.show
-          @terminal.start_screen_check
+        def interactive
+          require 'tsc/irb.rb'
 
-          interactive
+          $: << '.'
+          ARGV.clear
+
+          sleep 1
+          begin 
+            IRB::start_for_binding self
+          rescue SystemExit
+          end
+          exit! 0
         end
-      end
-
-      def interactive
-        require 'tsc/irb.rb'
-
-        $: << '.'
-        ARGV.clear
-
-        sleep 1
-        begin 
-          IRB::start_for_binding self
-        rescue SystemExit
-        end
-        exit! 0
       end
     end
   end

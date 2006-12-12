@@ -49,42 +49,44 @@
   
 =end
 
-module Session
-  class Pair
-    class << self
-      def [](*args)
-        self.new *args
+module TSC
+  module Session
+    class Pair
+      class << self
+        def [](*args)
+          self.new *args
+        end
       end
-    end
 
-    attr_accessor :x, :y
+      attr_accessor :x, :y
 
-    def initialize(*args)
-      @x, @y = *normalize(*args)
-    end
+      def initialize(*args)
+        @x, @y = *normalize(*args)
+      end
 
-    def to_a
-      [ x, y ]
-    end
+      def to_a
+        [ x, y ]
+      end
 
-    def ==(*args)
-      self.to_a == normalize(*args)
-    end
+      def ==(*args)
+        self.to_a == normalize(*args)
+      end
 
-    private
-    #######
-    def normalize(*args)
-      case args.size
-        when 0 
-          [0, 0]
-        when 1
-          args = args.first.to_a
-          raise ArgumentError if args.size == 1
-          normalize *args
-        when 2
-          args.map { |_arg| _arg.to_i }
-        else 
-          raise ArgumentError
+      private
+      #######
+      def normalize(*args)
+        case args.size
+          when 0 
+            [0, 0]
+          when 1
+            args = args.first.to_a
+            raise ArgumentError if args.size == 1
+            normalize *args
+          when 2
+            args.map { |_arg| _arg.to_i }
+          else 
+            raise ArgumentError
+        end
       end
     end
   end
@@ -93,61 +95,63 @@ end
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
 
-  module Session
-    class PairTest < Test::Unit::TestCase
-      def test_create_form_x_y
-        pair = Pair[3,4]
+  module TSC
+    module Session
+      class PairTest < Test::Unit::TestCase
+        def test_create_form_x_y
+          pair = Pair[3,4]
 
-        assert_equal 3, pair.x
-        assert_equal 4, pair.y
-      end
+          assert_equal 3, pair.x
+          assert_equal 4, pair.y
+        end
 
-      def test_create_from_other_pair
-        p1 = Pair[7,10]
-        p2 = Pair[p1]
+        def test_create_from_other_pair
+          p1 = Pair[7,10]
+          p2 = Pair[p1]
 
-        assert_equal 7, p2.x
-        assert_equal 10, p2.y
-      end
+          assert_equal 7, p2.x
+          assert_equal 10, p2.y
+        end
 
-      def test_create_from_array
-        pair = Pair.new [5, 9]
+        def test_create_from_array
+          pair = Pair.new [5, 9]
 
-        assert_equal 5, pair.x
-        assert_equal 9, pair.y
-      end
+          assert_equal 5, pair.x
+          assert_equal 9, pair.y
+        end
 
-      def test_create_empty
-        pair = Pair.new
-        assert_equal 0, pair.x
-        assert_equal 0, pair.y
-      end
+        def test_create_empty
+          pair = Pair.new
+          assert_equal 0, pair.x
+          assert_equal 0, pair.y
+        end
 
-      def test_equal_pair
-        pair = Pair[21,44]
+        def test_equal_pair
+          pair = Pair[21,44]
 
-        assert_equal Pair[21,44], pair
-        assert_not_equal Pair[44,21], pair
-        assert_equal pair, Pair[21,44]
-        assert_not_equal pair, Pair[44,21]
-      end
+          assert_equal Pair[21,44], pair
+          assert_not_equal Pair[44,21], pair
+          assert_equal pair, Pair[21,44]
+          assert_not_equal pair, Pair[44,21]
+        end
 
-      def test_equal_array
-        pair = Pair[21,44]
+        def test_equal_array
+          pair = Pair[21,44]
 
-        assert_equal pair, [21, 44]
-        assert_not_equal pair, [44, 21]
-      end
+          assert_equal pair, [21, 44]
+          assert_not_equal pair, [44, 21]
+        end
 
-      def test_wrong_arguments
-        assert_raises(ArgumentError) { Pair.new 1 }
-        assert_raises(ArgumentError) { Pair.new 1, 2, 3 }
-        assert_raises(NameError) { Pair.new [], [] }
-      end
+        def test_wrong_arguments
+          assert_raises(ArgumentError) { Pair.new 1 }
+          assert_raises(ArgumentError) { Pair.new 1, 2, 3 }
+          assert_raises(NameError) { Pair.new [], [] }
+        end
 
-      def test_to_a
-        assert_equal [8, 9], Pair[8,9].to_a
-        assert_not_equal [8, 9], Pair[9,8].to_a
+        def test_to_a
+          assert_equal [8, 9], Pair[8,9].to_a
+          assert_not_equal [8, 9], Pair[9,8].to_a
+        end
       end
     end
   end
