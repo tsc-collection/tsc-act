@@ -77,7 +77,6 @@ class Application < TSC::Application
       $: << File.expand_path(File.join(script_location, '..', 'lib'))
 
       do_and_exit { run_internal_tests } if @options['test']
-
       do_and_exit { print_loadpath } if @options['loadpath']
       do_and_exit { print_mode_directory } if @options['modedir']
 
@@ -104,7 +103,6 @@ class Application < TSC::Application
         raise TSC::Error.new(File.basename(runner), exception)
       end
     end
-    exit! 0
   end
 
   def figure_runner_path(runner)
@@ -132,7 +130,9 @@ class Application < TSC::Application
   end
 
   def run_internal_tests
+    require 'test/unit'
     require 'tsc/session/test-suite.rb'
+
     ARGV.clear
   end
 

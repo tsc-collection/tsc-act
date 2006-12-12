@@ -86,6 +86,10 @@ module TSC
           end
         end
 
+        def to_s
+          'act'
+        end
+
         def interactive
           require 'tsc/irb.rb'
 
