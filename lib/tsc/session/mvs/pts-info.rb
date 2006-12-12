@@ -1,52 +1,53 @@
-#
-#            Tone Software Corporation BSD License ("License")
-# 
-#                       Acceptance Testing Framework
-# 
-# Please read this License carefully before downloading this software. By
-# downloading or using this software, you are agreeing to be bound by the
-# terms of this License. If you do not or cannot agree to the terms of
-# this License, please do not download or use the software.
-# 
-# Provides facility for creating custom test suites for
-# acceptance/regression testing. The engine allows interfacing a system to
-# be tested through a variety of means such as a process on a local host
-# via a PTY (pseudo terminal), a network host via TELNET, an MVS host via
-# 3270 protocol, etc. An internal screen image for the system under test
-# is constantly maintained, with ability to examine it and to handle
-# various events. Input to the system under test can be generated with
-# support for functional keys. Ruby test/unit framework is readily
-# available for assertions.
-#      
-# Copyright (c) 2003, 2004, Tone Software Corporation
-#      
-# All rights reserved.
-#      
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#   * Redistributions of source code must retain the above copyright
-#     notice, this list of conditions and the following disclaimer. 
-#   * Redistributions in binary form must reproduce the above copyright
-#     notice, this list of conditions and the following disclaimer in the
-#     documentation and/or other materials provided with the distribution. 
-#   * Neither the name of the Tone Software Corporation nor the names of
-#     its contributors may be used to endorse or promote products derived
-#     from this software without specific prior written permission. 
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-# OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
-
+=begin
+ 
+             Tone Software Corporation BSD License ("License")
+  
+                        Acceptance Testing Framework
+  
+  Please read this License carefully before downloading this software. By
+  downloading or using this software, you are agreeing to be bound by the
+  terms of this License. If you do not or cannot agree to the terms of
+  this License, please do not download or use the software.
+  
+  Provides facility for creating custom test suites for
+  acceptance/regression testing. The engine allows interfacing a system to
+  be tested through a variety of means such as a process on a local host
+  via a PTY (pseudo terminal), a network host via TELNET, an MVS host via
+  3270 protocol, etc. An internal screen image for the system under test
+  is constantly maintained, with ability to examine it and to handle
+  various events. Input to the system under test can be generated with
+  support for functional keys. Ruby test/unit framework is readily
+  available for assertions.
+       
+  Copyright (c) 2003, 2004, Tone Software Corporation
+       
+  All rights reserved.
+       
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer. 
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution. 
+    * Neither the name of the Tone Software Corporation nor the names of
+      its contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission. 
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  
+=end
 
 module Session
   module Mvs
@@ -54,36 +55,37 @@ module Session
       attr_reader :customer, :product, :status, :date, :priority
 
       def initialize(*args)
-	@name, @customer, @product, *rest = *args
-	@status, @date, @priority, *rest = *rest
-	@description, *rest = *rest
+        @name, @customer, @product, *rest = *args
+        @status, @date, @priority, *rest = *rest
+        @description, *rest = *rest
       end
 
       def pts?
-	item? 'PTS'
+        item? 'PTS'
       end
 
       def prj?
-	item? 'PRJ'
+        item? 'PRJ'
       end
+      
       def item?(label)
-	[ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
+        [ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
       end
 
       def name
-	@name.to_s.upcase
+        @name.to_s.upcase
       end
 
       def description
-	@description.to_s.upcase
+        @description.to_s.upcase
       end
 
       def number
-	@name.scan(%r{\d+$}).first.to_i
+        @name.scan(%r{\d+$}).first.to_i
       end
 
       def to_s
-	"%8.8-s - %s" % [ name, description ]
+        "%8.8-s - %s" % [ name, description ]
       end
     end
   end
@@ -95,18 +97,18 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
   module Session
     module Mvs
       class PtsInfoTest < Test::Unit::TestCase
-	def test_pts_type
-	  item = PtsInfo.new 'pts0456'
-	  assert_equal 'PTS0456', item.name
-	  assert_equal '0456', item.pts?
+        def test_pts_type
+          item = PtsInfo.new 'pts0456'
+          assert_equal 'PTS0456', item.name
+          assert_equal '0456', item.pts?
 
-	  assert_equal nil, item.prj?
-	end
-	
-	def test_to_s
-	  item = PtsInfo.new 'pts000', nil, nil, nil, nil, nil, 'test entry'
-	  assert_equal '"PTS000   - TEST ENTRY"', item.to_s.inspect
-	end
+          assert_equal nil, item.prj?
+        end
+        
+        def test_to_s
+          item = PtsInfo.new 'pts000', nil, nil, nil, nil, nil, 'test entry'
+          assert_equal '"PTS000   - TEST ENTRY"', item.to_s.inspect
+        end
       end
     end
   end

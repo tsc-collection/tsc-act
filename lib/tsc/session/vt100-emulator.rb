@@ -1,52 +1,52 @@
 =begin
-#
-#            Tone Software Corporation BSD License ("License")
-# 
-#                       Acceptance Testing Framework
-# 
-# Please read this License carefully before downloading this software. By
-# downloading or using this software, you are agreeing to be bound by the
-# terms of this License. If you do not or cannot agree to the terms of
-# this License, please do not download or use the software.
-# 
-# Provides facility for creating custom test suites for
-# acceptance/regression testing. The engine allows interfacing a system to
-# be tested through a variety of means such as a process on a local host
-# via a PTY (pseudo terminal), a network host via TELNET, an MVS host via
-# 3270 protocol, etc. An internal screen image for the system under test
-# is constantly maintained, with ability to examine it and to handle
-# various events. Input to the system under test can be generated with
-# support for functional keys. Ruby test/unit framework is readily
-# available for assertions.
-#      
-# Copyright (c) 2003, 2004, Tone Software Corporation
-#      
-# All rights reserved.
-#      
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are
-# met:
-#   * Redistributions of source code must retain the above copyright
-#     notice, this list of conditions and the following disclaimer. 
-#   * Redistributions in binary form must reproduce the above copyright
-#     notice, this list of conditions and the following disclaimer in the
-#     documentation and/or other materials provided with the distribution. 
-#   * Neither the name of the Tone Software Corporation nor the names of
-#     its contributors may be used to endorse or promote products derived
-#     from this software without specific prior written permission. 
-# 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
-# OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+ 
+             Tone Software Corporation BSD License ("License")
+  
+                        Acceptance Testing Framework
+  
+  Please read this License carefully before downloading this software. By
+  downloading or using this software, you are agreeing to be bound by the
+  terms of this License. If you do not or cannot agree to the terms of
+  this License, please do not download or use the software.
+  
+  Provides facility for creating custom test suites for
+  acceptance/regression testing. The engine allows interfacing a system to
+  be tested through a variety of means such as a process on a local host
+  via a PTY (pseudo terminal), a network host via TELNET, an MVS host via
+  3270 protocol, etc. An internal screen image for the system under test
+  is constantly maintained, with ability to examine it and to handle
+  various events. Input to the system under test can be generated with
+  support for functional keys. Ruby test/unit framework is readily
+  available for assertions.
+       
+  Copyright (c) 2003, 2004, Tone Software Corporation
+       
+  All rights reserved.
+       
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer. 
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution. 
+    * Neither the name of the Tone Software Corporation nor the names of
+      its contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission. 
+  
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER
+  OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  
 =end
 
 require 'tsc/session/emulator.rb'
@@ -72,6 +72,7 @@ module Session
 
       reset
     end
+    
     def reset
       @mode = :text
       @params = []
@@ -82,6 +83,7 @@ module Session
     def key_sequence(key)
       Session::Key.convert(key).accept self
     end
+
     def process_data(*args)
       begin
         args.to_s.each_byte do |_byte|
@@ -102,27 +104,35 @@ module Session
     def visit_UP(key)
       @extended_keys ? "\eOA" : "\e[A"
     end
+
     def visit_DOWN(key)
       @extended_keys ? "\eOB" : "\e[B"
     end
+
     def visit_RIGHT(key)
       @extended_keys ? "\eOC" : "\e[C"
     end
+
     def visit_LEFT(key)
       @extended_keys ? "\eOD" : "\e[D"
     end
+
     def visit_F1(key)
       "\eOP"
     end
+
     def visit_F2(key)
       "\eOQ"
     end
+
     def visit_F3(key)
       "\eOR"
     end
+
     def visit_F4(key)
       "\eOS"
     end
+
     def visit_TEXT(key)
       key.to_s
     end
@@ -156,6 +166,7 @@ module Session
           screen.display byte.chr
       end
     end
+
     def process_control(byte)
       case byte
         when ?[ then switch_mode :control2
@@ -189,6 +200,7 @@ module Session
           operation_failed :control2
       end
     end
+
     def process_control2(byte)
       case byte
         when ?h then operation_not_implemented :standard_settings
@@ -274,6 +286,7 @@ module Session
           process_parameter byte
       end
     end
+
     def process_control3(byte)
       case byte
         when ?h
@@ -298,6 +311,7 @@ module Session
           process_parameter byte
       end
     end
+
     def process_parameter(byte)
       case byte
         when ?;
@@ -315,6 +329,7 @@ module Session
       end
       operation_failed @mode
     end
+    
     def switch_mode(mode)
       @params = [ 0 ]
       throw :switch, mode
@@ -323,12 +338,15 @@ module Session
     def sequence_string
       @sequence.map { |_byte| _byte.chr }.join
     end
+
     def operation_ignored(operation)
       trace "Ignoring", operation, sequence_string
     end
+
     def operation_not_implemented(operation)
       raise TSC::NotImplementedError.new(operation, sequence_string)
     end
+
     def operation_failed(operation)
       unless @tolerant
         raise TSC::OperationFailed.new(operation, sequence_string)
@@ -348,6 +366,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
       def test_term
         assert_equal 'vt100', @emulator.term
       end
+
       def test_key_sequence
         assert_equal "\e[A".inspect, @emulator.key_sequence(Session::Key::UP).inspect
         assert_equal "\e[B".inspect, @emulator.key_sequence(Session::Key::DOWN).inspect
@@ -373,6 +392,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
 
         assert_equal 'hello', @emulator.key_sequence(:hello)
       end
+
       def test_key_sequence_switch
         assert_equal "\e[A".inspect, @emulator.key_sequence(Session::Key::UP).inspect
         assert_equal "\e[B".inspect, @emulator.key_sequence(Session::Key::DOWN).inspect
@@ -393,10 +413,12 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         assert_equal "\e[C".inspect, @emulator.key_sequence(Session::Key::RIGHT).inspect
         assert_equal "\e[D".inspect, @emulator.key_sequence(Session::Key::LEFT).inspect
       end
+
       def test_process_text
         @emulator.process_data "hello", :World
         assert_equal 'helloWorld', @screen.lines[0].strip
       end
+
       def test_set_charsets
         assert_raises TSC::NotImplementedError do
           @emulator.process_data "\016"
@@ -405,6 +427,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           @emulator.process_data "\017"
         end
       end
+
       def test_save_restore_cursor
         @emulator.process_data "abcd"
         cursor = @screen.cursor
@@ -418,18 +441,22 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         @emulator.process_data "\e8"
         assert_equal cursor, @screen.cursor
       end
+
       def test_wrong_control
         @emulator.process_data "\eZ"
         assert_equal "\eZ".inspect, @screen.lines[0].strip.inspect
       end
+
       def test_wrong_control2
         @emulator.process_data "\e[3Z"
         assert_equal "\e[3Z".inspect, @screen.lines[0].strip.inspect
       end
+
       def test_wrong_control3
         @emulator.process_data "\e[?12;14Z"
         assert_equal "\e[?12;14Z".inspect, @screen.lines[0].strip.inspect
       end
+
       def test_move_cursor
         @emulator.process_data "\e[10;5H"
         assert_equal Pair[4,9], @screen.cursor
@@ -461,6 +488,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         @emulator.process_data "\e[19H"
         assert_equal Pair[0,18], @screen.cursor
       end
+
       def test_cursor_up_with_scroll
         @screen.display "aaa\nbbb\nccc\nddd\n"
         @screen.set_scroll_region 1, 2
@@ -478,6 +506,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           "aaa", "", "bbb", "ddd", *Array.new(20, "")
         ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
       end
+
       def test_erase_page
         @screen.display "aaa\nbbb\nccc\nddd\neee"
         @screen.set_cursor 1, 3
@@ -502,6 +531,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           "", "", "", "", "", *Array.new(19, "")
         ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
       end
+
       def test_erase_line
         @screen.display "abcdefg"
         assert_match %r{^abcdefg\s+$}, @screen.lines[0]
@@ -524,6 +554,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         @emulator.process_data "\e[2K"
         assert_match %r{^\s+$}, @screen.lines[2]
       end
+
       def test_set_scroll_region
         @emulator.process_data "\e[3;5r"
         assert_equal Pair[2,4], @screen.scroll_region
@@ -534,6 +565,7 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         @emulator = Vt100Emulator.new @screen
         @screen.newline_assumes_return = true
       end
+
       def teardown
         @emulator = nil
         @screen = nil
