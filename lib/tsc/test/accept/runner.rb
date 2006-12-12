@@ -85,7 +85,7 @@ module TSC
 
             retry
           end
-          raise TSC::CompoundError.new(*errors) unless errors.empty?
+          raise TSC::Error.new(*errors) unless errors.empty?
         end
       end
     end
