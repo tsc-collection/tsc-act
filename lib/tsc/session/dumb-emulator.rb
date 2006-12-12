@@ -72,8 +72,8 @@ end
 
 if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
-  require 'session/screen.rb'
-  require 'session/key.rb'
+  require 'tsc/session/screen.rb'
+  require 'tsc/session/key.rb'
 
   module Session
     class DumbEmulatorTest < Test::Unit::TestCase

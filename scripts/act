@@ -132,7 +132,7 @@ class Application < TSC::Application
   end
 
   def run_internal_tests
-    require 'session/test-suite.rb'
+    require 'tsc/session/test-suite.rb'
     ARGV.clear
   end
 

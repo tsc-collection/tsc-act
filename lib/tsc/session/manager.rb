@@ -122,8 +122,8 @@ end
 
 if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
-  require 'session/dumb-emulator.rb'
-  require 'session/screen.rb'
+  require 'tsc/session/dumb-emulator.rb'
+  require 'tsc/session/screen.rb'
 
   module Session
     class ManagerTest < Test::Unit::TestCase

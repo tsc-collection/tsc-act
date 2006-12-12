@@ -91,7 +91,7 @@ end
 
 if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
-  require 'session/screen.rb'
+  require 'tsc/session/screen.rb'
 
   module Session
     class ChatTest < Test::Unit::TestCase
@@ -101,11 +101,13 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
           super
           @prompts = []
         end
+
         def wait_prompt(prompt,time_to_complete,time_no_update)
           super prompt, time_to_complete, time_no_update
           @prompts.push [ prompt, time_to_complete, time_no_update ]
         end
       end
+
       class MockCommunicator
         attr_reader :screen
         attr_accessor :eol
@@ -113,6 +115,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         def initialize
           @screen = MockScreen.new
         end
+
         def typein(*args)
           case args.to_s
             when 'Login: ' then @screen.display "\r\n\nLogin: "
@@ -120,6 +123,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
             when "password#{@eol}" then @screen.display "\r\n\n\n$ "
           end
         end
+
         def show_screen
           @screen.show do |line|
             $stderr.puts line
@@ -138,6 +142,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
           ['$ ', 2, 1]
         ], @communicator.screen.prompts
       end
+
       def test_different_timeouts
         @communicator.typein 'Login: '
         @chat.time_to_complete = 4
@@ -160,6 +165,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         ], 7, 1
         @communicator.typein 'Login: '
       end
+
       def teardown
         @chat = nil
         @communicator = nil

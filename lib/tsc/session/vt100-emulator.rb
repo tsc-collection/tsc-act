@@ -359,7 +359,7 @@ end
 
 if $0 == __FILE__ or defined? Test::Unit::TestCase
   require 'test/unit'
-  require 'session/screen.rb'
+  require 'tsc/session/screen.rb'
 
   module Session
     class Vt100EmulatorTest < Test::Unit::TestCase
