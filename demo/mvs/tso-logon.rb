@@ -74,7 +74,7 @@ module Demo
         @user = options['user'] or raise 'No user specified'
         @password = options['password'] or raise "No password for user #{user}"
         @verbose = options['verbose']
-        @tso = Session::Mvs::Tso.new terminal
+        @tso = TSC::Session::Mvs::Tso.new terminal
       end
 
       def start

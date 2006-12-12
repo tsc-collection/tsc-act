@@ -340,7 +340,7 @@ module TSC
         end
 
         def logon_page?
-          screen.line(0) =~ %{^\s*[-]+\s+TSO/E\s+LOGON\s+[-]+\s*$}
+          screen.line(0) =~ %r{^\s*[-]+\s+TSO/E\s+LOGON\s+[-]+\s*$}
         end
 
         def attempt_to_reconnect?
