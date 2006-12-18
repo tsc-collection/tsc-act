@@ -145,7 +145,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         def test_wrong_arguments
           assert_raises(ArgumentError) { Pair.new 1 }
           assert_raises(ArgumentError) { Pair.new 1, 2, 3 }
-          assert_raises(NameError) { Pair.new [], [] }
+          assert_raises(NoMethodError) { Pair.new [], [] }
         end
 
         def test_to_a

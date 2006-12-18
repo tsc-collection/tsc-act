@@ -423,12 +423,8 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         end
 
         def test_set_charsets
-          assert_raises TSC::NotImplementedError do
-            @emulator.process_data "\016"
-          end
-          assert_raises TSC::NotImplementedError do
-            @emulator.process_data "\017"
-          end
+          @emulator.process_data "lqqm\016lqqm\017lqqm"
+          assert_equal 'lqqm+--+lqqm', @screen.lines[0].strip
         end
 
         def test_save_restore_cursor

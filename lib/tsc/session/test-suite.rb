@@ -50,6 +50,7 @@
 =end
 
 $:.concat [ '..', *ENV['PATH'].split(':') ]
+$: << File.join(File.dirname(__FILE__), '..', '..')
 
 require 'test/unit'
 require 'test/unit/ui/console/testrunner'
@@ -60,11 +61,13 @@ require 'tsc/session/chat.rb'
 require 'tsc/session/dumb-emulator.rb'
 require 'tsc/session/vt100-emulator.rb'
 require 'tsc/session/key.rb'
-require 'tsc/session/manager.rb'
+require 'tsc/session/telnet-manager.rb'
+require 'tsc/session/ssh-manager.rb'
 require 'tsc/session/pair.rb'
 require 'tsc/session/screen.rb'
 require 'tsc/session/synchro-queue.rb'
 require 'tsc/session/terminal.rb'
+
 require 'tsc/session/s3270-emulator.rb'
 require 'tsc/session/s3270-stream.rb'
 require 'tsc/session/mvs-screen.rb'

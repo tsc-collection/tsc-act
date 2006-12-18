@@ -49,33 +49,112 @@
   
 =end
 
-require 'tsc/monitor.rb'
-require 'tsc/errors.rb'
-require 'tsc/synchro-queue.rb'
+require 'tsc/session/manager.rb'
+require 'tsc/session/exec-stream.rb'
+require 'tsc/session/emulator-provider.rb'
 
 module TSC
   module Session
-    class SynchroQueue < TSC::SynchroQueue
-      def read(size)
-        get
+    class ExecManager < Manager
+      include EmulatorProvider
+
+      def session(*command, &block) 
+        stream = ExecStream.new {
+          ENV['TERM'] = emulator.term
+          exec *command
+        }
+        process stream, &block
       end
     end
   end
 end
 
-if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
+if $0 == __FILE__ or defined?(Test::Unit::TestCase)
   require 'test/unit'
-
+  
   module TSC
     module Session
-      class SynchroQueueTest < Test::Unit::TestCase
-        def test_nothing
+      class ExecManagerTest < Test::Unit::TestCase
+        def test_session
+          message = "Hello, world !!!"
+          @terminal = @manager.exec_session("echo #{message.inspect}")
+          @terminal.screen.lock {
+            @terminal.start
+            @terminal.screen.wait_full_update {
+              assert_equal message, @terminal.screen.lines.first.strip
+            }
+          }
+        end
+        
+        def test_finished
+          @terminal = @manager.exec_session "date"
+          assert_equal false, @terminal.finished?
+          @terminal.start
+          assert_nothing_raised do
+            timeout 1 do
+              until @terminal.finished?
+              end
+            end
+          end
+          assert_nothing_raised do
+            timeout 1 do
+              while @terminal.stream.alive?
+              end
+            end
+          end
+          assert_equal true, @terminal.stream.exited?
+          assert_equal 0, @terminal.stream.status
+        end
+
+        def test_reset
+          @terminal = @manager.exec_session "sh"
+          @terminal.start
+          sleep 1
+          assert_equal false, @terminal.finished?
+          assert_equal true, @terminal.stream.alive?
+          @terminal.reset
+          assert_equal true, @terminal.finished?
+          assert_nothing_raised do
+            timeout 2 do
+              while @terminal.stream.alive?
+              end
+            end
+          end
+          assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
+        end
+
+        def test_detached_session
+          result = nil
+          timeout 3 do
+            thread = @manager.exec_session "sh" do |_terminal|
+              @terminal = _terminal
+              _terminal.screen.lock {
+                _terminal.typein "echo $TERM\n"
+                _terminal.screen.wait_full_update {
+                  result = _terminal.screen.lines[1]
+                }
+              }
+            end
+            thread.join
+          end
+          assert_match %r{dumb\s*$}, result
+          assert_equal true, @terminal.finished?
+          timeout 1 do
+            while @terminal.stream.alive?
+            end
+          end
+          assert_equal true, (!@terminal.stream.killed? or @terminal.stream.signal != 9)
         end
 
         def setup
+          @terminal = nil
+          @manager = Manager.new self
         end
 
         def teardown
+          @terminal.reset if @terminal
+          @manager = nil
+          @terminal = nil
         end
       end
     end

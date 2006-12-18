@@ -54,30 +54,25 @@ require 'tsc/errors.rb'
 require 'tsc/test/accept/runner.rb'
 require 'tsc/test/accept/runtime.rb'
 
-require 'tsc/session/manager.rb'
-require 'tsc/session/mvs-screen.rb'
-require 'tsc/session/s3270-emulator.rb'
+require 'tsc/session/mvs-manager.rb'
 require 'tsc/session/key.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    @manager = TSC::Session::Manager.new self
+    @manager = TSC::Session::MvsManager.new
 
     host = ARGV.shift or raise 'No host specified'
     options['host'] = host
 
-    thread = @manager.mvs_session(host) do |_terminal|
+    thread = @manager.session(host) do |_terminal|
       _terminal.screen.lock do
         _terminal.typein Session::Key::SCREEN
         _terminal.screen.wait_update 10
       end
+
       TSC::Test::Accept::Runtime.instance.start _terminal, options
     end
 
     ensure_thread_completion thread
-  end
-
-  def emulator
-    TSC::Session::S3270Emulator.new TSC::Session::MvsScreen.new
   end
 end

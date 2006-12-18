@@ -49,25 +49,36 @@
   
 =end
 
-require 'net/telnet'
-require 'timeout'
+require 'tsc/session/manager.rb'
+require 'tsc/session/s3270-stream.rb'
+require 'tsc/session/mvs-screen.rb'
+require 'tsc/session/s3270-emulator.rb'
 
 module TSC
   module Session
-    class TelnetStream < Net::Telnet
-      def get_available_data
-        begin
-          waitfor /./
-        rescue TimeoutError
-          retry
-        rescue
-          nil
-        end
+    class MvsManager < Manager
+      def session(host, &block)
+        process S3270Stream.new(host), &block
       end
 
-      def reset
-        self.close_read
-        self.close_write
+      def emulator
+        TSC::Session::S3270Emulator.new TSC::Session::MvsScreen.new
+      end
+    end
+  end
+end
+
+if $0 == __FILE__ or defined?(Test::Unit::TestCase)
+  require 'test/unit'
+  
+  module TSC
+    module Session
+      class MvsManagerTest < Test::Unit::TestCase
+        def setup
+        end
+        
+        def teardown
+        end
       end
     end
   end

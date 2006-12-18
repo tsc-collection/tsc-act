@@ -49,25 +49,66 @@
   
 =end
 
-require 'net/telnet'
-require 'timeout'
+require 'tsc/session/manager.rb'
+require 'tsc/session/telnet-stream.rb'
+require 'tsc/session/emulator-provider.rb'
 
 module TSC
   module Session
-    class TelnetStream < Net::Telnet
-      def get_available_data
-        begin
-          waitfor /./
-        rescue TimeoutError
-          retry
-        rescue
-          nil
-        end
-      end
+    class TelnetManager < Manager
+      include EmulatorProvider
 
-      def reset
-        self.close_read
-        self.close_write
+      def session(host, user = nil, password = nil, prompt = nil, &block)
+        host_array = host.to_s.split ':'
+        host = host_array[0].strip
+        port = host_array[1].to_i
+
+        options = Hash[
+          'Host' => host, 
+          'Port' => (port==0 ? 23 : port)
+        ]
+        options['Prompt'] = prompt if prompt
+
+        stream = TelnetStream.new options
+
+        user_array = user.to_s.split ':'
+        user = user_array[0].to_s.strip
+        password ||= user_array[1]
+
+        stream.login user, password.to_s.strip unless user.empty?
+        process stream, &block
+      end
+    end
+  end
+end
+
+if $0 == __FILE__ or defined?(Test::Unit::TestCase)
+  require 'test/unit'
+  
+  module TSC
+    module Session
+      class TelnetManagerTest < Test::Unit::TestCase
+        def test_session
+          @terminal = @manager.session("localhost:7")
+          @terminal.start
+          @terminal.screen.lock {
+            @terminal.typein "abcdef\n"
+            @terminal.screen.wait_full_update {
+              assert_equal "abcdef", @terminal.screen.lines.first.strip
+            }
+          }
+        end
+
+        def setup
+          @terminal = nil
+          @manager = TelnetManager.new
+        end
+
+        def teardown
+          @terminal.reset if @terminal
+          @manager = nil
+          @terminal = nil
+        end
       end
     end
   end

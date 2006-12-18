@@ -278,10 +278,10 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           }
         end
 
-        def with_data(*data)
+        def with_data(*args)
           timeout 3 do
             @terminal.screen.lock do
-              @stream.data *data
+              @stream.data *args
               @terminal.screen.wait_update do
                 yield if block_given?
               end
@@ -289,10 +289,10 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           end
         end
 
-        def with_locked_screen_and_data(*data)
+        def with_locked_screen_and_data(*args)
           sleep 0.1
           @terminal.screen.lock do
-            @stream.data *data
+            @stream.data(*args)
             yield if block_given?
           end
         end

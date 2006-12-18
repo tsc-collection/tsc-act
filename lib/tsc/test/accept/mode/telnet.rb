@@ -51,20 +51,18 @@
 
 require 'tsc/test/accept/runner.rb'
 require 'tsc/test/accept/runtime.rb'
-require 'tsc/session/manager.rb'
-require 'tsc/session/screen.rb'
-require 'tsc/session/vt100-emulator.rb'
+require 'tsc/session/telnet-manager.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    @manager = TSC::Session::Manager.new self
+    @manager = TSC::Session::TelnetManager.new
 
     host = options['host'] || ARGV.shift or raise 'No host specified'
     user = options['user'] or raise 'No user name specified'
     password = options['password']
     prompt = Regexp.new(options['prompt'] || "[$%#>]\s+$")
 
-    thread = @manager.telnet_session host, user, password, prompt do |_terminal|
+    thread = @manager.session(host, user, password, prompt) do |_terminal|
       _terminal.screen.lock do
         _terminal.typein "TERM='#{_terminal.term}' export TERM\n"
         _terminal.screen.wait_prompt prompt, 10
@@ -73,11 +71,5 @@ class Runner < TSC::Test::Accept::Runner
     end
 
     ensure_thread_completion thread
-  end
-
-  def emulator
-    emulator = TSC::Session::Vt100Emulator.new TSC::Session::Screen.new
-    emulator.tolerant = false
-    emulator
   end
 end
