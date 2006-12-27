@@ -65,6 +65,7 @@ module TSC
         def initialize(options)
           @options = options
         end
+
         def self.mode_directory
           File.join File.dirname(__FILE__), 'mode'
         end

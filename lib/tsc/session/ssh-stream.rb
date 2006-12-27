@@ -24,11 +24,7 @@ module TSC
       end
 
       def get_available_data
-        begin
-          @queue.get
-        rescue
-          nil
-        end
+        @queue.get or raise EOFError, "Connection to #{@session.host.inspect} closed on remote request"
       end
 
       def write(data)
@@ -52,7 +48,7 @@ module TSC
           }
           _channel.on_failure {
             @connected = false
-            raise "Connection to #{@session.host.inspect} failed"
+            raise IOError, "Connection to #{@session.host.inspect} failed"
           }
           _channel.on_data { |_channel, _data|
             @queue.put _data
@@ -61,10 +57,12 @@ module TSC
             @queue.put _data
           }
           _channel.on_eof {
-            raise "Connection to #{@session.host.inspect} closed on remote request"
             _channel.close
+            @connected = false
+            @queue.put nil
           }
           _channel.on_close {
+            @connected = false
             @session.close
           }
           _channel.on_window_adjust {

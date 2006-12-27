@@ -13,8 +13,15 @@ module TSC
     class SshManager < TSC::Session::Manager
       include EmulatorProvider
 
-      def session(host, user = nil, password = nil, prompt = nil, &block)
-        process SshStream.new(host, :password => password), &block
+      def initialize(host, user = nil, password = nil, prompt = nil)
+        super SshStream.new(host, :password => password), prompt
+      end
+
+      def session(&block)
+        activate do |_terminal|
+          fix_terminal_type
+          block.call _terminal if block
+        end
       end
     end
   end

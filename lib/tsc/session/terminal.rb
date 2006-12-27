@@ -91,8 +91,9 @@ module TSC
       def start
         raise TerminalError if @finished == true
 
-        @data_read_thread ||= start_data_thread
-        @screen_update_thread ||= start_update_thread
+        start_data_thread
+        start_update_thread
+
         @data_read_thread.priority = 10
       end
 
@@ -142,24 +143,21 @@ module TSC
       end
 
       def start_data_thread
-        Thread.new do
-          TSC::Error.relay @error_handler_thread do
+        @data_read_thread ||= Thread.new(Thread.current) do |_master|
+          begin
             loop do
-              data = @stream.get_available_data
-              unless data.nil?
-                @data_queue.put data
-              else
-                @finished = true
-                thread, @data_read_thread = @data_read_thread, nil
-                thread.exit
-              end
+              @data_queue.put(@stream.get_available_data || break)
             end
+          rescue Exception => exception
+            _master.raise exception
           end
+          @finished = true
+          @data_read_thread = nil
         end
       end
 
       def start_update_thread
-        Thread.new do
+        @screen_update_thread ||= Thread.new do
           TSC::Error.relay @error_handler_thread do
             loop do
               @emulator.process_data @data_queue.get

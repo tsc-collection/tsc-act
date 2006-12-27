@@ -58,25 +58,21 @@ module TSC
     class TelnetManager < Manager
       include EmulatorProvider
 
-      def session(host, user = nil, password = nil, prompt = nil, &block)
-        host_array = host.to_s.split ':'
-        host = host_array[0].strip
-        port = host_array[1].to_i
+      def initialize(host, user, password, prompt = nil)
+        @user, @password = user, password
+        host, port = host.to_s.split ':'
 
-        options = Hash[
-          'Host' => host, 
-          'Port' => (port==0 ? 23 : port)
-        ]
-        options['Prompt'] = prompt if prompt
+        super TelnetStream.new(host, port), prompt
+      end
 
-        stream = TelnetStream.new options
+      def session(&block)
+        activate do |_terminal|
+          login(@user, @password)
+          fix_terminal_size
+          fix_terminal_type
 
-        user_array = user.to_s.split ':'
-        user = user_array[0].to_s.strip
-        password ||= user_array[1]
-
-        stream.login user, password.to_s.strip unless user.empty?
-        process stream, &block
+          block.call _terminal if block
+        end
       end
     end
   end
@@ -89,7 +85,7 @@ if $0 == __FILE__ or defined?(Test::Unit::TestCase)
     module Session
       class TelnetManagerTest < Test::Unit::TestCase
         def test_session
-          @terminal = @manager.session("localhost:7")
+          @terminal = @manager.terminal
           @terminal.start
           @terminal.screen.lock {
             @terminal.typein "abcdef\n"
@@ -101,7 +97,7 @@ if $0 == __FILE__ or defined?(Test::Unit::TestCase)
 
         def setup
           @terminal = nil
-          @manager = TelnetManager.new
+          @manager = TelnetManager.new("localhost:7", nil, nil)
         end
 
         def teardown

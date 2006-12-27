@@ -55,6 +55,13 @@ require 'timeout'
 module TSC
   module Session
     class TelnetStream < Net::Telnet
+      def initialize(host, port = nil)
+        @host = host.to_s.strip
+        @port = port || 23
+
+        super('Host' => @host, 'Port' => @port)
+      end
+
       def get_available_data
         begin
           waitfor /./
@@ -62,7 +69,7 @@ module TSC
           retry
         rescue
           nil
-        end
+        end or raise EOFError, "Connection to #{[@host, @port].join(':').inspect} closed on remote request"
       end
 
       def reset

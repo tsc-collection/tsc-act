@@ -55,25 +55,83 @@ require 'tsc/errors.rb'
 module TSC
   module Session
     class Manager
-      def initialize
+      attr_reader :prompt
+      attr_writer :verbose
+
+      def initialize(stream, prompt = nil)
         @error_handler_thread = Thread.current
+        @prompt = Regexp.new(prompt || "[$%#>]\s+$")
+        @stream = stream
+      end
+
+      def terminal
+        @terminal ||= begin
+          Terminal.new @stream, emulator
+        end
+      end
+
+      def verbose?
+        @verbose ? true : false
       end
       
       protected
       #########
-      def process(stream, &block)
-        terminal = Terminal.new stream, emulator
-        return terminal unless block
+
+      def activate(&block)
+        raise "No block given" unless block
 
         Thread.new do
           TSC::Error.relay @error_handler_thread do
             begin 
               terminal.start
+              if verbose?
+                terminal.screen.show
+                terminal.start_screen_check
+              end
               block.call terminal
             ensure
               terminal.reset
             end
           end
+        end
+      end
+
+      def login(user, password)
+        terminal.screen.lock do
+          terminal.screen.wait_prompt %r{ogin:\s*}, 2
+          terminal.typein "#{user}\n"
+
+          terminal.screen.wait_prompt %r{assword:\s*}, 2
+          terminal.typein "#{password}\n"
+
+          terminal.screen.wait_prompt prompt, 2
+        end
+      end
+
+      def fix_terminal_size
+        terminal.screen.lock do
+          terminal.screen.wait_prompt prompt, 2
+          terminal.typein "stty rows #{terminal.screen.size.y} cols #{terminal.screen.size.x}\n"
+
+          terminal.screen.wait_prompt prompt, 2
+          terminal.typein "LINES=#{terminal.screen.size.y} export LINES\n"
+
+          terminal.screen.wait_prompt prompt, 2
+          terminal.typein "COLUMNS=#{terminal.screen.size.x} export COLUMNS\n"
+
+          terminal.screen.wait_prompt prompt, 2
+          terminal.typein "COLS=#{terminal.screen.size.x} export COLS\n"
+
+          terminal.screen.wait_prompt prompt, 2
+        end
+      end
+
+      def fix_terminal_type
+        terminal.screen.lock do
+          terminal.screen.wait_prompt prompt, 2
+          terminal.typein "TERM='#{terminal.term}' export TERM\n"
+
+          terminal.screen.wait_prompt prompt, 2
         end
       end
 
