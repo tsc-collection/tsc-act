@@ -52,7 +52,7 @@ module TSC
           }
           _channel.on_failure {
             @connected = false
-            raise "Connection to #{host.inspect} failed"
+            raise "Connection to #{@session.host.inspect} failed"
           }
           _channel.on_data { |_channel, _data|
             @queue.put _data
@@ -61,7 +61,7 @@ module TSC
             @queue.put _data
           }
           _channel.on_eof {
-            raise "Connection to #{host.inspect} closed on remote request"
+            raise "Connection to #{@session.host.inspect} closed on remote request"
             _channel.close
           }
           _channel.on_close {
