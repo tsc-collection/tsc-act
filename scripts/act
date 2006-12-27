@@ -133,7 +133,7 @@ class Application < TSC::Application
     require 'test/unit'
     require 'tsc/session/test-suite.rb'
 
-    ARGV.clear
+    exit Test::Unit::AutoRunner.run
   end
 
   in_generator_context do |_content|

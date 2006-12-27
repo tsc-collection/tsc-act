@@ -11,9 +11,7 @@ module TSC
   module Session
     module EmulatorProvider
       def emulator
-        emulator = TSC::Session::Vt100Emulator.new TSC::Session::Screen.new
-        emulator.tolerant = false
-        emulator
+        TSC::Session::Vt100Emulator.new(TSC::Session::Screen.new, false)
       end
     end
   end

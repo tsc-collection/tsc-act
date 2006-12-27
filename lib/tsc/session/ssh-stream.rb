@@ -55,11 +55,9 @@ module TSC
             raise "Connection to #{host.inspect} failed"
           }
           _channel.on_data { |_channel, _data|
-            puts "SSH: #{_data.inspect}"
             @queue.put _data
           }
           _channel.on_extended_data { |_channel, _data|
-            puts "SSH: #{_data.inspect}"
             @queue.put _data
           }
           _channel.on_eof {

@@ -62,11 +62,11 @@ module TSC
 
       attr_accessor :tolerant
 
-      def initialize(screen)
+      def initialize(screen, tolerant = true)
         super :vt100, screen
 
         @extended_keys = false
-        @tolerant = true
+        @tolerant = tolerant
 
         @saved_cursor = screen.cursor
         @saved_scroll_region = screen.scroll_region
@@ -171,6 +171,7 @@ module TSC
       def process_control(byte)
         case byte
           when ?[ then switch_mode :control2
+          when ?] then switch_mode :reverse_control
           when ?( then operation_ignored :select_charset_g0
           when ?) then operation_ignored :select_charset_g1
           when ?# then operation_not_implemented :line_size
@@ -198,7 +199,7 @@ module TSC
               screen.set_cursor cursor.x, cursor.y - 1
             end
           else
-            operation_failed :control2
+            operation_failed :control
         end
       end
 
@@ -310,6 +311,19 @@ module TSC
             end
           else
             process_parameter byte
+        end
+      end
+
+      def process_reverse_control(byte)
+        case byte
+          when "\x07".slice(0)
+            screen.title = @params.join
+          when ?;
+            @params = []
+            throw :switch, @mode
+          else
+            @params << byte.chr
+            throw :switch, @mode
         end
       end
 
@@ -442,16 +456,19 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
         end
 
         def test_wrong_control
+          @emulator.tolerant = true
           @emulator.process_data "\eZ"
           assert_equal "\eZ".inspect, @screen.lines[0].strip.inspect
         end
 
         def test_wrong_control2
+          @emulator.tolerant = true
           @emulator.process_data "\e[3Z"
           assert_equal "\e[3Z".inspect, @screen.lines[0].strip.inspect
         end
 
         def test_wrong_control3
+          @emulator.tolerant = true
           @emulator.process_data "\e[?12;14Z"
           assert_equal "\e[?12;14Z".inspect, @screen.lines[0].strip.inspect
         end
@@ -559,9 +576,15 @@ if $0 == __FILE__ or defined? Test::Unit::TestCase
           assert_equal Pair[2,4], @screen.scroll_region
         end
 
+        def test_set_title
+          assert_equal nil, @screen.title
+          @emulator.process_data "\e]0;my new title\x07"
+          assert_equal "my new title", @screen.title
+        end
+
         def setup
           @screen = Screen.new
-          @emulator = Vt100Emulator.new @screen
+          @emulator = Vt100Emulator.new @screen, false
           @screen.newline_assumes_return = true
         end
 

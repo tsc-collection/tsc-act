@@ -64,6 +64,8 @@ module TSC
       attr_reader :mutex, :update_condition, :update_counter
       attr_writer :newline_assumes_return, :autowrap
 
+      attr_accessor :title
+
       def debug
         false
       end
@@ -219,6 +221,7 @@ module TSC
         visualizer.call "size=#{@size.inspect}"
         visualizer.call "cursor=#{@cursor.inspect}"
         visualizer.call "region=#{@scroll_region.inspect}"
+        visualizer.call "title=#{@title.inspect}"
 
         separator = "+#{'-' * @size.x}+"
         visualizer.call separator
