@@ -19,17 +19,23 @@ class Runner < TSC::Test::Accept::Runner
     puts "### Command: #{command.inspect}"
     puts "### Hosts: #{hosts.size}"
 
+    $stdout.sync = true
+    $stderr.sync = true
+
     ensure_thread_completion hosts.map { |_host|
       on_host _host  do |_terminal, _screen, _prompt|
         report 'started', _host
-        lines = []
-        _screen.lock do
-          _terminal.typein "#{command}\n"
-          _screen.foreach_newline_until_prompt(_prompt) do |_line|
-            lines << _line 
-          end
+
+        communicator = Communicator.new(_terminal, _screen, _prompt)
+
+        lines = communicator.collect_output(command)
+        code = communicator.last_exit_code
+
+        if code == 0
+          report_success _host, *lines
+        else
+          report_failure _host, "Terminated with exit code #{code}", *lines
         end
-        report_success _host, *lines
       end
     }
     puts
@@ -55,21 +61,22 @@ class Runner < TSC::Test::Accept::Runner
   #######
 
   def report_success(host, *lines)
-    report 'success', host, *lines
+    report 'succeeded', host, *lines
 
     @success_count += 1
   end
 
-  def report_failure(host, reason)
-    report 'FAIL', host, nil, reason
+  def report_failure(host, reason, command = nil, *lines)
+    report [ 'FAILED', '*' ] , host, command, *(lines + [ "[...#{reason}...]" ])
 
     @fail_count += 1
   end
 
   def report(message, host, command = nil, *lines)
+    message, mark = Array(message)
     field = "%10.10s"
     puts [
-      "#{field % message}: host=#{host.inspect}, time=#{timestamp}", 
+      "#{(mark || ' ')[0].chr}#{field % message}: host=#{host.inspect}, time=#{timestamp}", 
       lines.squeeze.map { |_line| 
         (field % '') + '  > ' + _line 
       }
@@ -94,7 +101,7 @@ class Runner < TSC::Test::Accept::Runner
   end
 
   def hosts
-    @hosts ||= params['hosts'] || ARGV
+    @hosts ||= Array(options['host'] || params['hosts'] || ARGV)
   end
 
   def connect(host)
@@ -123,5 +130,38 @@ class Runner < TSC::Test::Accept::Runner
 
   def params
     @params ||= config['mass-exec'] || Hash.new
+  end
+end
+
+class Communicator 
+  attr_reader :terminal, :screen, :prompt
+
+  def initialize(terminal, screen, prompt)
+    @terminal, @screen, @prompt = terminal, screen, prompt
+  end
+
+  def collect_output(command)
+    lines = []
+    screen.lock do
+      terminal.typein "#{command}\n"
+      screen.foreach_newline_until_prompt(prompt) do |_line|
+        lines << _line 
+      end
+    end
+
+    lines
+  end
+
+  def last_exit_code
+    screen.lock do
+      screen.wait_prompt prompt, 2
+      terminal.typein "echo Exit code: ${?}\n"
+      screen.wait_prompt prompt, 2
+
+      code = screen.line_from_cursor(-1).scan(%r{^Exit code:\s+(\d+)\s+$}).flatten.compact.first
+      raise 'Cannot get the last exit code' unless code
+
+      code.to_i
+    end
   end
 end
