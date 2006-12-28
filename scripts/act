@@ -64,7 +64,8 @@ class Application < TSC::Application
       [ '--loadpath', 'Print out the loadpath', nil, '-l' ],
       [ '--test', 'Run internal tests', nil, '-t' ],
       [ '--interactive', 'Print out the loadpath', nil, '-i' ],
-      [ '--host', 'The host to connect to', "host", '-c' ],
+      [ '--host', 'The host to connect to', 'host', '-c' ],
+      [ '--config', 'Config file', 'file', '-f' ],
       [ '--user', 'User name', 'user', '-u' ],
       [ '--password', 'User password', 'password', '-p' ],
       [ '--prompt', 'Prompt regexp', 'prompt', '-P' ]
@@ -82,6 +83,10 @@ class Application < TSC::Application
 
       require 'tsc/test/accept/runner.rb'
       require 'tsc/test/accept/runtime.rb'
+      require 'tsc/config.rb'
+
+      config = options['config']
+      options['config'] = TSC::Config.parse(config).hash if config
 
       mode = options['mode']
       if mode
@@ -89,6 +94,7 @@ class Application < TSC::Application
       else
         runner = ARGV.shift
       end
+
       unless runner
         do_and_exit { TSC::Test::Accept::Runtime.instance.interactive } if options['interactive']
         raise 'No test runner specified'

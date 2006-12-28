@@ -1,0 +1,95 @@
+#!/usr/bin/env act
+# vim:set ft=ruby:
+
+require 'tsc/session/telnet-manager.rb'
+require 'tsc/session/ssh-manager.rb'
+require 'tsc/test/accept/runner.rb'
+
+require 'tsc/array.rb'
+
+class Runner < TSC::Test::Accept::Runner
+  def start
+    command = params['command']
+    case command
+      when nil
+        command = ARGV.shift or raise 'No command specified'
+
+      when Hash
+        command = command[ARGV.shift] or raise 'No named command found'
+
+      else 
+        command = Array(command).first.to_s
+    end
+
+    puts "### Command: #{command.inspect}"
+
+    hosts = params['hosts'] || ARGV
+
+    threads = hosts.map { |_host|
+      on_host(_host) { |_terminal, _screen, _prompt|
+        puts "STARTED: host=#{_host.inspect}, time=#{timestamp}"
+        lines = []
+        _screen.lock do
+          _terminal.typein "#{command}\n"
+          _screen.foreach_newline_until_prompt(_prompt) do |_line|
+            lines << _line 
+          end
+        end
+        lines.shift
+        puts [
+          "FINISHED: host=#{_host.inspect}, time=#{timestamp}", 
+          lines.squeeze.map { |_line| 
+            '  > ' + _line 
+          }
+        ]
+      }
+    }
+    threads.compact.each do |_thread|
+      ensure_thread_completion(_thread)
+    end
+  end
+
+  def on_host(host, &block)
+    begin
+      manager = connect(host)
+      manager.verbose = options['verbose']
+
+      manager.session do |_terminal|
+        yield _terminal, _terminal.screen, manager.prompt
+      end
+    rescue => exception
+      puts "FAILED: host=#{host.inspect}, reason=#{exception.message}"
+    end
+  end
+
+  private
+  #######
+
+  def connect(host)
+    begin
+      TSC::Session::SshManager.new(host, user, password) 
+    rescue 
+      TSC::Session::TelnetManager.new(host, user, password)
+    end
+  end
+
+  def timestamp
+    Time.now.strftime('%y-%m-%d %H:%M:%S').inspect
+  end
+
+  def user
+    @user ||= config['user'] || options['user'] or raise "No user specified"
+  end
+
+  def password 
+    @password ||= config['password'] || options['password'] or raise "No password specified"
+  end
+
+  def config 
+    @config ||= options['config'] || Hash.new
+  end
+
+  def params
+    @params ||= config['mass-exec'] || Hash.new
+  end
+end

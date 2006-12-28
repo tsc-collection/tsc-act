@@ -98,7 +98,7 @@ module TSC
 
       def login(user, password)
         terminal.screen.lock do
-          terminal.screen.wait_prompt %r{ogin:\s*}, 2
+          terminal.screen.wait_prompt %r{ogin:\s*}, 60
           terminal.typein "#{user}\n"
 
           terminal.screen.wait_prompt %r{assword:\s*}, 2
@@ -110,7 +110,7 @@ module TSC
 
       def fix_terminal_size
         terminal.screen.lock do
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 60
           terminal.typein "stty rows #{terminal.screen.size.y} cols #{terminal.screen.size.x}\n"
 
           terminal.screen.wait_prompt prompt, 2
@@ -128,7 +128,7 @@ module TSC
 
       def fix_terminal_type
         terminal.screen.lock do
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 60
           terminal.typein "TERM='#{terminal.term}' export TERM\n"
 
           terminal.screen.wait_prompt prompt, 2
