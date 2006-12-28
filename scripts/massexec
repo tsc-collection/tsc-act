@@ -1,0 +1,46 @@
+#!/usr/bin/env act
+# vim:set ft=ruby:
+
+require 'tsc/session/telnet-manager.rb'
+require 'tsc/session/ssh-manager.rb'
+require 'tsc/test/accept/runner.rb'
+
+class Runner < TSC::Test::Accept::Runner
+  def start
+    command = ARGV.shift.to_s
+    threads = ARGV.map { |_host|
+      on_host(_host) { |_terminal, _prompt|
+        puts "STARTED: host=#{_host.inspect}, time=#{Time.now}"
+        _terminal.screen.lock do
+          _terminal.typein "#{command}\n"
+          _terminal.screen.wait_prompt _prompt
+        end
+        puts "FINISHED: host=#{_host.inspect}, time=#{Time.now}, result=#{_terminal.screen.line_from_cursor(-1).inspect}"
+      }
+    }
+    
+    threads.each do |_thread|
+      ensure_thread_completion(_thread)
+    end
+  end
+
+  def on_host(host, &block)
+    manager = TSC::Session::SshManager.new(host, user, password) rescue TSC::Session::TelnetManager.new(host, user, password)
+    manager.verbose = options['verbose']
+
+    manager.session { |_terminal|
+      yield _terminal, manager.prompt
+    }
+  end
+
+  private
+  #######
+
+  def user
+    @user ||= options['user'] or raise "No user specified"
+  end
+
+  def password 
+    @password ||= options['password'] or raise "No password specified"
+  end
+end

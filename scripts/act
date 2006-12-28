@@ -76,21 +76,21 @@ class Application < TSC::Application
       process_command_line
       $: << File.expand_path(File.join(script_location, '..', 'lib'))
 
-      do_and_exit { run_internal_tests } if @options['test']
-      do_and_exit { print_loadpath } if @options['loadpath']
-      do_and_exit { print_mode_directory } if @options['modedir']
+      do_and_exit { run_internal_tests } if options['test']
+      do_and_exit { print_loadpath } if options['loadpath']
+      do_and_exit { print_mode_directory } if options['modedir']
 
       require 'tsc/test/accept/runner.rb'
       require 'tsc/test/accept/runtime.rb'
 
-      mode = @options['mode']
+      mode = options['mode']
       if mode
         runner = File.join TSC::Test::Accept::Runner.mode_directory, mode
       else
         runner = ARGV.shift
       end
       unless runner
-        do_and_exit { TSC::Test::Accept::Runtime.instance.interactive } if @options['interactive']
+        do_and_exit { TSC::Test::Accept::Runtime.instance.interactive } if options['interactive']
         raise 'No test runner specified'
       end
 
@@ -98,7 +98,7 @@ class Application < TSC::Application
       $: << File.dirname(runner_path)
 
       begin
-        TSC::Test::Accept::Runner.load(runner_path).new(@options).start
+        TSC::Test::Accept::Runner.load(runner_path).new(options).start
       rescue StandardError, Interrupt, SignalException => exception
         raise TSC::Error.new(File.basename(runner), exception)
       end
@@ -112,10 +112,6 @@ class Application < TSC::Application
 
     raise "Test runner #{runner.inspect} not found" unless path
     File.expand_path path
-  end
-
-  def process_command_line
-    @options = super true
   end
 
   def print_mode_directory
