@@ -11,16 +11,13 @@ class Runner < TSC::Test::Accept::Runner
   def start
     command = ARGV.shift.to_s
     threads = ARGV.map { |_host|
-      on_host(_host) { |_terminal, _prompt|
+      on_host(_host) { |_terminal, _screen, _prompt|
         puts "STARTED: host=#{_host.inspect}, time=#{timestamp}"
         lines = []
-        _terminal.screen.lock do
+        _screen.lock do
           _terminal.typein "#{command}\n"
-          while true
-            _terminal.screen.foreach_newline(2) do |_line|
-              lines << _line 
-            end
-            break if _terminal.screen.prompt?(_prompt)
+          _screen.foreach_newline_until_prompt(_prompt) do |_line|
+            lines << _line 
           end
         end
         lines.shift
@@ -46,7 +43,7 @@ class Runner < TSC::Test::Accept::Runner
     manager.verbose = options['verbose']
 
     manager.session do |_terminal|
-      yield _terminal, manager.prompt
+      yield _terminal, _terminal.screen, manager.prompt
     end
   end
 

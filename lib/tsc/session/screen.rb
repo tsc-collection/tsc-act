@@ -217,6 +217,15 @@ module TSC
           _buffer.each_newline time_no_update , &action
         end
       end
+
+      def foreach_newline_until_prompt(prompt, time_no_update = 2, &action)
+        loop do
+          foreach_newline(time_no_update) do |_line|
+            action.call(_line) if action
+          end
+          return true if prompt?(prompt)
+        end
+      end
       
       def show(&visualizer)
         if visualizer.nil?
