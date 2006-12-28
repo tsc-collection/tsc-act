@@ -50,6 +50,12 @@
   
 =end
 
+require 'yaml'
+require 'openssl'
+require 'zlib'
+require 'base64'
+require 'ostruct'
+
 product {
   name "ACT"
   description "Acceptance testing tool"
@@ -84,6 +90,7 @@ fileset {
     lib/test/accept/mode
   }
   generate.into('bin').source.program "scripts/act"
+  generate.into('bin').source.program "scripts/mass-exec"
   install.into('.').source.file "Changes"
 
   symlink "/usr/local/bin/act" => "bin/act"
@@ -92,14 +99,19 @@ fileset {
     tsc/session/emulator.rb
     tsc/session/dumb-emulator.rb
     tsc/session/vt100-emulator.rb
+    tsc/session/emulator-provider.rb
     tsc/session/key.rb
     tsc/session/manager.rb
+    tsc/session/telnet-manager.rb
+    tsc/session/ssh-manager.rb
+    tsc/session/exec-manager.rb
     tsc/session/pair.rb
     tsc/session/screen.rb
     tsc/session/line-buffer.rb
     tsc/session/terminal.rb
     tsc/session/telnet-stream.rb
     tsc/session/exec-stream.rb
+    tsc/session/ssh-stream.rb
     tsc/session/test-suite.rb
     tsc/session/preload.rb
     tsc/session/s3270-stream.rb
@@ -126,6 +138,7 @@ fileset {
     tsc/test/accept/mode/generic.rb
     tsc/test/accept/mode/unit.rb
     tsc/test/accept/mode/telnet.rb
+    tsc/test/accept/mode/ssh.rb
     tsc/test/accept/mode/3270.rb
   }
 }

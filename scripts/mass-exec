@@ -113,7 +113,7 @@ class Runner < TSC::Test::Accept::Runner
   end
 
   def timestamp
-    Time.now.strftime('%y-%m-%d %H:%M:%S').inspect
+    Time.now.strftime('%y-%m-%d@%H:%M:%S').inspect
   end
 
   def user
@@ -163,5 +163,14 @@ class Communicator
 
       code.to_i
     end
+  end
+end
+
+require 'tsc/application.rb'
+
+class Generator < TSC::Application
+  in_generator_context do |_content|
+    _content << '#!/usr/bin/env ' + File.join(self.class.installation_top, 'bin', 'act')
+    _content << IO.readlines(__FILE__).slice(1..-1)
   end
 end

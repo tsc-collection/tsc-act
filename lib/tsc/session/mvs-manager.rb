@@ -68,12 +68,12 @@ module TSC
   end
 end
 
-if $0 == __FILE__ or defined?(Test::Unit::TestCase)
+if $0 == __FILE__ or defined?(::Test::Unit::TestCase)
   require 'test/unit'
   
   module TSC
     module Session
-      class MvsManagerTest < Test::Unit::TestCase
+      class MvsManagerTest < ::Test::Unit::TestCase
         def setup
         end
         
