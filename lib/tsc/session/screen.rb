@@ -87,7 +87,7 @@ module TSC
         "#{@area.slice(index)}"
       end
       
-      def line_upto_cursor(offset)
+      def line_upto_cursor(offset = 0)
         x = [ [ 0, cursor.x + offset ].max, size.x ].min
         "#{@area.slice(cursor.y).slice(0, x)}"
       end
@@ -185,14 +185,18 @@ module TSC
         end
       end
 
-      def wait_prompt(prompt,time_to_complete = 0,time_no_update = 0,&action)
-        expr = prompt.kind_of?(Regexp) ? prompt : (/^#{Regexp.quote(prompt)}$/)
-        wait_condition(time_to_complete,time_no_update) {
-          line = @area[@cursor.y][0,@cursor.x]
-          if line =~ expr
-            line = line.clone
-            action.call line unless action.nil?
-            line
+      def prompt?(prompt)
+        line_upto_cursor =~ case prompt
+          when Regexp then prompt
+          else %r{^#{Regexp.quote(prompt)}$}
+        end
+      end
+
+      def wait_prompt(prompt, time_to_complete = 0, time_no_update = 0, &action)
+        wait_condition(time_to_complete, time_no_update) {
+          if prompt?(prompt)
+            action.call if action
+            line_upto_cursor
           end
         }
       end
@@ -207,7 +211,7 @@ module TSC
         }
       end
 
-      def foreach_newline(time_no_update = nil,&action)
+      def foreach_newline(time_no_update = nil, &action)
         trace
         with_line_buffer do |_buffer|
           _buffer.each_newline time_no_update , &action

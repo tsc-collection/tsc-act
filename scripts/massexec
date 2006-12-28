@@ -5,36 +5,57 @@ require 'tsc/session/telnet-manager.rb'
 require 'tsc/session/ssh-manager.rb'
 require 'tsc/test/accept/runner.rb'
 
+require 'tsc/array.rb'
+
 class Runner < TSC::Test::Accept::Runner
   def start
     command = ARGV.shift.to_s
     threads = ARGV.map { |_host|
       on_host(_host) { |_terminal, _prompt|
-        puts "STARTED: host=#{_host.inspect}, time=#{Time.now}"
+        puts "STARTED: host=#{_host.inspect}, time=#{timestamp}"
+        lines = []
         _terminal.screen.lock do
           _terminal.typein "#{command}\n"
-          _terminal.screen.wait_prompt _prompt
+          while true
+            _terminal.screen.foreach_newline(2) do |_line|
+              lines << _line 
+            end
+            break if _terminal.screen.prompt?(_prompt)
+          end
         end
-        puts "FINISHED: host=#{_host.inspect}, time=#{Time.now}, result=#{_terminal.screen.line_from_cursor(-1).inspect}"
+        lines.shift
+        puts [
+          "FINISHED: host=#{_host.inspect}, time=#{timestamp}", 
+          lines.squeeze.map { |_line| 
+            '  > ' + _line 
+          }
+        ]
       }
     }
-    
     threads.each do |_thread|
       ensure_thread_completion(_thread)
     end
   end
 
   def on_host(host, &block)
-    manager = TSC::Session::SshManager.new(host, user, password) rescue TSC::Session::TelnetManager.new(host, user, password)
+    manager = begin
+      TSC::Session::SshManager.new(host, user, password) 
+    rescue 
+      TSC::Session::TelnetManager.new(host, user, password)
+    end
     manager.verbose = options['verbose']
 
-    manager.session { |_terminal|
+    manager.session do |_terminal|
       yield _terminal, manager.prompt
-    }
+    end
   end
 
   private
   #######
+
+  def timestamp
+    Time.now.strftime('%y-%m-%d %H:%M:%S').inspect
+  end
 
   def user
     @user ||= options['user'] or raise "No user specified"
