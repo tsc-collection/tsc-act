@@ -76,17 +76,15 @@ module TSC
 
         protected
         #########
-        def ensure_thread_completion(thread)
-          errors = []
-          begin
-            thread.join
-          rescue StandardError, Interrupt, SignalException => exception
-            thread.exit if errors.empty?
-            errors.push exception
 
-            retry
-          end
-          raise TSC::Error.new(*errors) unless errors.empty?
+        def ensure_thread_completion(*threads)
+          TSC::Error.persist { |_queue|
+            threads.flatten.compact.each do |_thread|
+              _queue.add {
+                _thread.join
+              }
+            end
+          }
         end
       end
     end

@@ -8,26 +8,20 @@ require 'tsc/test/accept/runner.rb'
 require 'tsc/array.rb'
 
 class Runner < TSC::Test::Accept::Runner
+  def initialize(*args)
+    super
+
+    @success_count = 0
+    @fail_count = 0
+  end
+
   def start
-    command = params['command']
-    case command
-      when nil
-        command = ARGV.shift or raise 'No command specified'
-
-      when Hash
-        command = command[ARGV.shift] or raise 'No named command found'
-
-      else 
-        command = Array(command).first.to_s
-    end
-
     puts "### Command: #{command.inspect}"
+    puts "### Hosts: #{hosts.size}"
 
-    hosts = params['hosts'] || ARGV
-
-    threads = hosts.map { |_host|
-      on_host(_host) { |_terminal, _screen, _prompt|
-        puts "STARTED: host=#{_host.inspect}, time=#{timestamp}"
+    ensure_thread_completion hosts.map { |_host|
+      on_host _host  do |_terminal, _screen, _prompt|
+        report 'started', _host
         lines = []
         _screen.lock do
           _terminal.typein "#{command}\n"
@@ -35,18 +29,12 @@ class Runner < TSC::Test::Accept::Runner
             lines << _line 
           end
         end
-        lines.shift
-        puts [
-          "FINISHED: host=#{_host.inspect}, time=#{timestamp}", 
-          lines.squeeze.map { |_line| 
-            '  > ' + _line 
-          }
-        ]
-      }
+        report_success _host, *lines
+      end
     }
-    threads.compact.each do |_thread|
-      ensure_thread_completion(_thread)
-    end
+    puts
+    puts "### Succeeded: #{@success_count}"
+    puts "### Failed:    #{@fail_count}"
   end
 
   def on_host(host, &block)
@@ -58,12 +46,56 @@ class Runner < TSC::Test::Accept::Runner
         yield _terminal, _terminal.screen, manager.prompt
       end
     rescue => exception
-      puts "FAILED: host=#{host.inspect}, reason=#{exception.message}"
+      report_failure host, exception.message
+      nil
     end
   end
 
   private
   #######
+
+  def report_success(host, *lines)
+    report 'success', host, *lines
+
+    @success_count += 1
+  end
+
+  def report_failure(host, reason)
+    report 'FAIL', host, nil, reason
+
+    @fail_count += 1
+  end
+
+  def report(message, host, command = nil, *lines)
+    field = "%10.10s"
+    puts [
+      "#{field % message}: host=#{host.inspect}, time=#{timestamp}", 
+      lines.squeeze.map { |_line| 
+        (field % '') + '  > ' + _line 
+      }
+    ]
+  end
+
+  def command
+    @command ||= begin
+      item = params['command']
+      case item
+        when nil
+          ARGV.shift or raise 'No command specified'
+
+        when Hash
+          raise "No command name specified (#{item.keys.join(', ')})" if ARGV.empty?
+          item[ARGV.shift] or raise 'No named command found'
+
+        else 
+          Array(item).first.to_s
+      end
+    end
+  end
+
+  def hosts
+    @hosts ||= params['hosts'] || ARGV
+  end
 
   def connect(host)
     begin
