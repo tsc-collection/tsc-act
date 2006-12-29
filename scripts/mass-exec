@@ -6,6 +6,7 @@ require 'tsc/session/ssh-manager.rb'
 require 'tsc/test/accept/runner.rb'
 
 require 'tsc/array.rb'
+require 'tsc/synchro-queue.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def initialize(*args)
@@ -13,6 +14,7 @@ class Runner < TSC::Test::Accept::Runner
 
     @success_count = 0
     @fail_count = 0
+    @queue = TSC::SynchroQueue.new(true)
   end
 
   def start
@@ -26,6 +28,8 @@ class Runner < TSC::Test::Accept::Runner
 
     $stdout.sync = true
     $stderr.sync = true
+
+    start_output_thread
 
     ensure_thread_completion hosts.map { |_host|
       on_host _host  do |_terminal, _screen, _prompt|
@@ -43,6 +47,10 @@ class Runner < TSC::Test::Accept::Runner
         end
       end
     }
+
+    @queue.put nil
+    ensure_thread_completion @output_thread
+
     puts
     puts "### Succeeded: #{@success_count}"
     puts "### Failed:    #{@fail_count}"
@@ -65,6 +73,17 @@ class Runner < TSC::Test::Accept::Runner
   private
   #######
 
+  def start_output_thread
+    @output_thread = Thread.new do
+      loop do
+        data = @queue.get
+        break unless data
+
+        puts data
+      end
+    end
+  end
+
   def report_success(host, *lines)
     report 'succeeded', host, *lines
 
@@ -80,7 +99,7 @@ class Runner < TSC::Test::Accept::Runner
   def report(message, host, command = nil, *lines)
     message, mark = Array(message)
     field = "%10.10s"
-    puts [
+    @queue.put [
       "#{(mark || ' ')[0].chr}#{field % message}: host=#{host.inspect}, time=#{timestamp}", 
       lines.squeeze.map { |_line| 
         (field % '') + '   > ' + _line 
