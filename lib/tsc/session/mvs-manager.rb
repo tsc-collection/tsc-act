@@ -57,8 +57,14 @@ require 'tsc/session/s3270-emulator.rb'
 module TSC
   module Session
     class MvsManager < Manager
-      def session(host, &block)
-        process S3270Stream.new(host), &block
+      def initialize(host, user = nil, password = nil)
+        super S3270Stream.new(host)
+      end
+
+      def session(&block)
+        activate do |_terminal|
+          block.call _terminal if block
+        end
       end
 
       def emulator

@@ -16,6 +16,11 @@ class Runner < TSC::Test::Accept::Runner
   end
 
   def start
+    user
+    password
+    command
+    hosts
+
     puts "### Command: #{command.inspect}"
     puts "### Hosts: #{hosts.size}"
 
@@ -78,7 +83,7 @@ class Runner < TSC::Test::Accept::Runner
     puts [
       "#{(mark || ' ')[0].chr}#{field % message}: host=#{host.inspect}, time=#{timestamp}", 
       lines.squeeze.map { |_line| 
-        (field % '') + '  > ' + _line 
+        (field % '') + '   > ' + _line 
       }
     ]
   end
@@ -114,18 +119,6 @@ class Runner < TSC::Test::Accept::Runner
 
   def timestamp
     Time.now.strftime('%y-%m-%d@%H:%M:%S').inspect
-  end
-
-  def user
-    @user ||= config['user'] || options['user'] or raise "No user specified"
-  end
-
-  def password 
-    @password ||= config['password'] || options['password'] or raise "No password specified"
-  end
-
-  def config 
-    @config ||= options['config'] || Hash.new
   end
 
   def params

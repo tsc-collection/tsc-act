@@ -104,13 +104,11 @@ fileset {
     tsc/session/manager.rb
     tsc/session/telnet-manager.rb
     tsc/session/ssh-manager.rb
-    tsc/session/exec-manager.rb
     tsc/session/pair.rb
     tsc/session/screen.rb
     tsc/session/line-buffer.rb
     tsc/session/terminal.rb
     tsc/session/telnet-stream.rb
-    tsc/session/exec-stream.rb
     tsc/session/ssh-stream.rb
     tsc/session/test-suite.rb
     tsc/session/preload.rb

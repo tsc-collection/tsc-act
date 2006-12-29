@@ -52,6 +52,9 @@
 require 'tsc/errors.rb'
 require 'tsc/loadable.rb'
 
+require 'highline'
+require 'etc'
+
 module TSC
   module Test
     module Accept
@@ -73,6 +76,23 @@ module TSC
         def start
           raise TSC::NotImplementedError, :start
         end
+
+        def user
+          @user ||= config['user'] || options['user'] || Etc.getpwuid.name
+        end
+
+        def password 
+          @password ||= config['password'] || options['password'] || begin
+            HighLine.new.ask("Password for #{user.inspect}: ") { |_question|
+              _question.echo = false
+            }
+          end
+        end
+
+        def config 
+          @config ||= options['config'] || Hash.new
+        end
+
 
         protected
         #########

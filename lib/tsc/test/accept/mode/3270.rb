@@ -59,20 +59,18 @@ require 'tsc/session/key.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    @manager = TSC::Session::MvsManager.new
+    host = Array(options['host']).first || ARGV.shift or raise 'No host specified'
 
-    host = ARGV.shift or raise 'No host specified'
-    options['host'] = host
+    manager = TSC::Session::MvsManager.new(host, user, password)
+    manager.verbose = options['verbose'] || options['interactive']
 
-    thread = @manager.session(host) do |_terminal|
+    ensure_thread_completion manager.session { |_terminal|
       _terminal.screen.lock do
         _terminal.typein Session::Key::SCREEN
         _terminal.screen.wait_update 10
       end
 
       TSC::Test::Accept::Runtime.instance.start _terminal, options
-    end
-
-    ensure_thread_completion thread
+    }
   end
 end

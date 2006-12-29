@@ -55,17 +55,13 @@ require 'tsc/session/telnet-manager.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    host = options['host'] || ARGV.shift or raise 'No host specified'
-    user = options['user'] or raise 'No user name specified'
-    password = options['password'] or raise 'No password specified'
+    host = Array(options['host']).first || ARGV.shift or raise 'No host specified'
 
     manager = TSC::Session::TelnetManager.new(host, user, password, options['prompt'])
     manager.verbose = options['verbose'] || options['interactive']
 
-    thread = manager.session do |_terminal|
+    ensure_thread_completion manager.session { |_terminal|
       TSC::Test::Accept::Runtime.instance.start _terminal, options
-    end
-
-    ensure_thread_completion(thread)
+    }
   end
 end

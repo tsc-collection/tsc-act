@@ -10,17 +10,14 @@ require 'tsc/session/ssh-manager.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    host = options['host'] || ARGV.shift or raise 'No host specified'
-    user = options['user'] or raise 'No user name specified'
+    host = Array(options['host']).first || ARGV.shift or raise 'No host specified'
 
-    manager = TSC::Session::SshManager.new(host, user, options['password'], options['prompt'])
+    manager = TSC::Session::SshManager.new(host, user, password, options['prompt'])
     manager.verbose = options['verbose'] || options['interactive']
 
-    thread = manager.session do |_terminal|
+    ensure_thread_completion manager.session { |_terminal|
       TSC::Test::Accept::Runtime.instance.start _terminal, options
-    end
-
-    ensure_thread_completion(thread)
+    }
   end
 end
 
