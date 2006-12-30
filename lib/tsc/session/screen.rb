@@ -80,7 +80,7 @@ module TSC
         "#{@area.slice(index)}"
       end
 
-      def line_from_cursor(offset)
+      def line_from_cursor(offset = 0)
         index = cursor.y + offset
         return '' unless index.between? 0, size.y - 1
 
