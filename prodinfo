@@ -93,7 +93,9 @@ fileset {
   generate.into('bin').source.program "scripts/mass-exec"
   install.into('.').source.file "Changes"
 
-  symlink "/usr/local/bin/act" => "bin/act"
+  symlink "/usr/local/bin/act" => "./bin/act"
+  symlink "/usr/local/bin/mass-exec" => "./bin/mass-exec"
+
   install.into('lib/tsc/session').source.ruby 'lib' => %w{
     tsc/session/chat.rb
     tsc/session/emulator.rb
