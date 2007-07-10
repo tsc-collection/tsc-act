@@ -77,13 +77,13 @@ class Application < TSC::Application
       process_command_line
       $: << File.expand_path(File.join(script_location, '..', 'lib'))
 
-      do_and_exit { run_internal_tests } if options['test']
-      do_and_exit { print_loadpath } if options['loadpath']
-      do_and_exit { print_mode_directory } if options['modedir']
-
       require 'tsc/test/accept/runner.rb'
       require 'tsc/test/accept/runtime.rb'
       require 'tsc/config.rb'
+
+      do_and_exit { run_internal_tests } if options['test']
+      do_and_exit { print_loadpath } if options['loadpath']
+      do_and_exit { print_mode_directory } if options['modedir']
 
       config = options['config']
       options['config'] = TSC::Config.parse(config).hash if config
