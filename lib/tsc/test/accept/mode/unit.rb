@@ -59,7 +59,6 @@ class Runner < TSC::Test::Accept::Runner
     end
     require 'test/unit'
     ARGV.clear
-    exit 0
   end
 end
 
