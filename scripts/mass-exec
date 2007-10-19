@@ -6,12 +6,21 @@ require 'tsc/session/ssh-manager.rb'
 require 'tsc/test/accept/runner.rb'
 
 require 'tsc/array.rb'
+require 'tsc/application.rb'
 require 'tsc/synchro-queue.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def initialize(*args)
     super
 
+    app = TSC::Application.new { |_config|
+      _config.options = [
+        [ '--serialize', 'Do hosts one after another', nil, '-s' ]
+      ]
+    }
+    app.start {}
+
+    @serialize = app.options['serialize'] ? true : false
     @success_count = 0
     @fail_count = 0
     @queue = TSC::SynchroQueue.new(true)
@@ -32,7 +41,7 @@ class Runner < TSC::Test::Accept::Runner
     start_output_thread
 
     ensure_thread_completion hosts.map { |_host|
-      on_host _host  do |_terminal, _screen, _prompt|
+      thread = on_host _host  do |_terminal, _screen, _prompt|
         report 'started', _host
 
         communicator = Communicator.new(_terminal, _screen, _prompt)
@@ -46,6 +55,9 @@ class Runner < TSC::Test::Accept::Runner
           report_failure _host, "Terminated with exit code #{code}", *lines
         end
       end
+
+      thread.join if @serialize
+      thread
     }
 
     @queue.put nil
