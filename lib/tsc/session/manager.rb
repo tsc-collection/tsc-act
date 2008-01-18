@@ -101,10 +101,10 @@ module TSC
           terminal.screen.wait_prompt %r{ogin:\s*}, 60
           terminal.typein "#{user}\n"
 
-          terminal.screen.wait_prompt %r{assword:\s*}, 2
+          terminal.screen.wait_prompt %r{assword:\s*}, 10
           terminal.typein "#{password}\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
         end
       end
 
@@ -113,16 +113,16 @@ module TSC
           terminal.screen.wait_prompt prompt, 60
           terminal.typein "stty rows #{terminal.screen.size.y} cols #{terminal.screen.size.x}\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
           terminal.typein "LINES=#{terminal.screen.size.y} export LINES\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
           terminal.typein "COLUMNS=#{terminal.screen.size.x} export COLUMNS\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
           terminal.typein "COLS=#{terminal.screen.size.x} export COLS\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
         end
       end
 
@@ -131,7 +131,7 @@ module TSC
           terminal.screen.wait_prompt prompt, 60
           terminal.typein "TERM='#{terminal.term}' export TERM\n"
 
-          terminal.screen.wait_prompt prompt, 2
+          terminal.screen.wait_prompt prompt, 10
         end
       end
 

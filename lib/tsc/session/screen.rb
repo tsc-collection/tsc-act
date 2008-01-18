@@ -180,7 +180,7 @@ module TSC
           return result if result
 
           if time_to_complete > 0 and (Time.now.to_i-time) > time_to_complete
-            raise TimeoutError
+            raise TimeoutError, "wait_condition: allowed=#{time_to_complete}, actual=#{Time.now.to_i-time}"
           end
         end
       end
