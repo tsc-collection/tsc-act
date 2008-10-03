@@ -96,7 +96,7 @@ fileset {
   symlink "/usr/local/bin/act" => "./bin/act"
   symlink "/usr/local/bin/mass-exec" => "./bin/mass-exec"
 
-  install.into('lib/tsc/session').source.ruby 'lib' => %w{
+  install.into('lib/tsc/session').source.ruby 'scripts' => %w{
     tsc/session/chat.rb
     tsc/session/emulator.rb
     tsc/session/dumb-emulator.rb
@@ -118,7 +118,7 @@ fileset {
     tsc/session/s3270-emulator.rb
     tsc/session/mvs-screen.rb
   }
-  install.into('lib/tsc/session/mvs').source.ruby 'lib' => %w{
+  install.into('lib/tsc/session/mvs').source.ruby 'scripts' => %w{
     tsc/session/mvs/tso.rb
     tsc/session/mvs/pts-info.rb
   }

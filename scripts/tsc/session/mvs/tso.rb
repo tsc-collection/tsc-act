@@ -49,7 +49,6 @@
   
 =end
 
-require 'tsc/test/accept/action.rb'
 require 'tsc/session/key.rb'
 require 'tsc/session/screen.rb'
 require 'tsc/session/mvs/pts-info.rb'
