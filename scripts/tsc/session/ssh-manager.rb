@@ -14,8 +14,8 @@ module TSC
     class SshManager < TSC::Session::Manager
       include EmulatorProvider
 
-      def initialize(host, user = nil, password = nil, prompt = nil)
-        super SshStream.new(host, :password => password), prompt
+      def initialize(host, user = nil, password = nil, options = {})
+        super SshStream.new(host, :password => password), options
       end
 
       def protocol

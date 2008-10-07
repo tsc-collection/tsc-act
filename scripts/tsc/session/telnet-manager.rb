@@ -59,11 +59,11 @@ module TSC
     class TelnetManager < Manager
       include EmulatorProvider
 
-      def initialize(host, user, password, prompt = nil)
+      def initialize(host, user, password, options = {})
         @user, @password = user, password
         host, port = host.to_s.split ':'
 
-        super TelnetStream.new(host, port), prompt
+        super TelnetStream.new(host, port), options
       end
 
       def protocol

@@ -114,14 +114,14 @@ module TSC
         @screen_check_thread = stop_thread @screen_check_thread
       end
 
-      def start_screen_check(ios = $stderr)
+      def start_screen_check(destination = $stderr)
         raise TerminalError if @finished == true
         stop_screen_check
         @screen_check_thread ||= Thread.new do
           TSC::Error.relay @error_handler_thread do
             loop do
               screen.wait_update do
-                screen.show(ios)
+                screen.show destination
               end
             end
           end

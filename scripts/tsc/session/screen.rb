@@ -245,11 +245,10 @@ module TSC
         result = block ? snapshot.map(&block) : snapshot 
         return if result.compact.empty?
 
-        callback = :on_screen
-        if destination.respond_to? callback
-          destination.send callback, result
-        else
+        if IO === destination
           destination.puts *result
+        else
+          destination.on_screen result
         end
       end
 

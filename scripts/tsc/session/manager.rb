@@ -52,6 +52,7 @@
 
 require 'tsc/session/terminal.rb'
 require 'tsc/errors.rb'
+require 'tsc/dataset.rb'
 
 module TSC
   module Session
@@ -59,10 +60,17 @@ module TSC
       attr_reader :prompt
       attr_writer :verbose
 
-      def initialize(stream, prompt = nil)
-        @error_handler_thread = Thread.current
-        @prompt = Regexp.new(prompt || "[$%#>]\s+$")
+      def initialize(stream, options = {})
         @stream = stream
+        @error_handler_thread = Thread.current
+
+        if Hash === options
+          params.update options
+        else
+          params.prompt = options.to_s
+        end
+
+        @prompt = Regexp.new(params.prompt || "[$%#>]\s+$")
       end
 
       def protocol
@@ -90,8 +98,8 @@ module TSC
             begin 
               terminal.start
               if verbose?
-                terminal.screen.show
-                terminal.start_screen_check
+                terminal.screen.show *Array(params.screener)
+                terminal.start_screen_check *Array(params.screener)
               end
               block.call terminal
             ensure
@@ -142,6 +150,13 @@ module TSC
 
       def emulator
         raise TSC::NotImplementedError, :emulator
+      end
+
+      private
+      #######
+
+      def params
+        @params ||= Dataset[ :prompt => nil, :screener => nil ]
       end
     end
   end

@@ -58,8 +58,8 @@ require 'tsc/session/s3270-emulator.rb'
 module TSC
   module Session
     class MvsManager < Manager
-      def initialize(host, user = nil, password = nil)
-        super S3270Stream.new(host)
+      def initialize(host, user = nil, password = nil, options = {})
+        super S3270Stream.new(host), options
       end
 
       def protocol
