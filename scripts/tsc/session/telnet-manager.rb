@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -63,6 +64,10 @@ module TSC
         host, port = host.to_s.split ':'
 
         super TelnetStream.new(host, port), prompt
+      end
+
+      def protocol
+        :telnet
       end
 
       def session(&block)

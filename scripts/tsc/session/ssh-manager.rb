@@ -1,3 +1,4 @@
+# vim: set sw=2:
 # Copyright (c) 2006, Gennady Bystritsky <bystr@mac.com>
 # 
 # Distributed under the MIT Licence.
@@ -15,6 +16,10 @@ module TSC
 
       def initialize(host, user = nil, password = nil, prompt = nil)
         super SshStream.new(host, :password => password), prompt
+      end
+
+      def protocol
+        :ssh
       end
 
       def session(&block)

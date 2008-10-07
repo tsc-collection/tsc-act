@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -62,6 +63,10 @@ module TSC
         @error_handler_thread = Thread.current
         @prompt = Regexp.new(prompt || "[$%#>]\s+$")
         @stream = stream
+      end
+
+      def protocol
+        self.class.name.split('::').pop
       end
 
       def terminal
