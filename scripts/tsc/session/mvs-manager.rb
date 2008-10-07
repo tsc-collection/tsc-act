@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -59,6 +60,10 @@ module TSC
     class MvsManager < Manager
       def initialize(host, user = nil, password = nil)
         super S3270Stream.new(host)
+      end
+
+      def protocol
+        :x3270
       end
 
       def session(&block)

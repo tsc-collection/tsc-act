@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -57,6 +58,10 @@ module TSC
   module Session
     class ExecManager < Manager
       include EmulatorProvider
+
+      def protocol
+        :exec
+      end
 
       def session(*command, &block) 
         stream = ExecStream.new {
