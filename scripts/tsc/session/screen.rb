@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -227,19 +228,29 @@ module TSC
         end
       end
       
-      def show(&visualizer)
-        if visualizer.nil?
-          visualizer = proc { |_line| puts "#{_line}" }
-        end
-        visualizer.call "size=#{@size.inspect}"
-        visualizer.call "cursor=#{@cursor.inspect}"
-        visualizer.call "region=#{@scroll_region.inspect}"
-        visualizer.call "title=#{@title.inspect}"
-
+      def show(destination = $stdout, &block)
         separator = "+#{'-' * @size.x}+"
-        visualizer.call separator
-        @area.each { |_line| visualizer.call "|#{_line}|" }
-        visualizer.call separator
+        snapshot = [
+          "size=#{@size.inspect}", 
+          "cursor=#{@cursor.inspect}",
+          "region=#{@scroll_region.inspect}",
+          "title=#{@title.inspect}",
+          separator,
+          @area.map { |_line| 
+            '|' + _line + '|' 
+          },
+          separator
+        ].flatten
+
+        result = block ? snapshot.map(&block) : snapshot 
+        return if result.compact.empty?
+
+        callback = :on_screen
+        if destination.respond_to? callback
+          destination.send callback, result
+        else
+          destination.puts *result
+        end
       end
 
       #

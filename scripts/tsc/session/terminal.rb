@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -120,8 +121,7 @@ module TSC
           TSC::Error.relay @error_handler_thread do
             loop do
               screen.wait_update do
-                ios.puts 'Screen updated:'
-                screen.show { |line| ios.puts %Q{  #{line}} }
+                screen.show(ios)
               end
             end
           end
