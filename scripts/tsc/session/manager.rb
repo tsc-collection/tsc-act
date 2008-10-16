@@ -114,10 +114,10 @@ module TSC
           terminal.screen.wait_prompt %r{ogin:\s*}, 60
           terminal.typein "#{user}\n"
 
-          terminal.screen.wait_prompt %r{assword:\s*}, 10
+          terminal.screen.wait_prompt %r{assword:\s*}, 30
           terminal.typein "#{password}\n"
 
-          terminal.screen.wait_prompt prompt, 10
+          terminal.screen.wait_prompt prompt, 30
         end
       end
 
