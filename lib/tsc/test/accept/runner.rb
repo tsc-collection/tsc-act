@@ -1,3 +1,4 @@
+# vim: set sw=2:
 =begin
  
              Tone Software Corporation BSD License ("License")
@@ -63,10 +64,11 @@ module TSC
           include TSC::Loadable
         end
 
-        attr_reader :options
+        attr_reader :options, :app
 
-        def initialize(options)
-          @options = options
+        def initialize(app)
+          @app = app
+          @options = app.options
         end
 
         def self.mode_directory
@@ -78,11 +80,11 @@ module TSC
         end
 
         def user
-          @user ||= config['user'] || options['user'] || Etc.getpwuid.name
+          @user ||= config['user'] || options.user || Etc.getpwuid.name
         end
 
         def password 
-          @password ||= config['password'] || options['password'] || begin
+          @password ||= config['password'] || options.password || begin
             HighLine.new.ask("Password for #{user.inspect}: ") { |_question|
               _question.echo = false
             }
@@ -90,7 +92,7 @@ module TSC
         end
 
         def config 
-          @config ||= options['config'] || Hash.new
+          @config ||= app.config || Hash.new
         end
 
 
