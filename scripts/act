@@ -78,6 +78,8 @@ class Application < TSC::Application
       process_command_line
       $: << File.expand_path(File.join(script_location, '..', 'lib'))
 
+      require 'rubygems'
+
       require 'tsc/test/accept/runner.rb'
       require 'tsc/test/accept/runtime.rb'
       require 'tsc/config.rb'
