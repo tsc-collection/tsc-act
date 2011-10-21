@@ -1,5 +1,5 @@
-# vim: set sw=2:
 =begin
+  vim: set sw=2:
  
              Tone Software Corporation BSD License ("License")
   
@@ -87,9 +87,6 @@ module TSC
         @verbose ? true : false
       end
       
-      protected
-      #########
-
       def activate(&block)
         raise "No block given" unless block
 
@@ -108,6 +105,9 @@ module TSC
           end
         end
       end
+
+      protected
+      #########
 
       def login(user, password)
         terminal.screen.lock do

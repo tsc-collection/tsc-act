@@ -1,4 +1,5 @@
 =begin
+  vim: sw=2:
  
              Tone Software Corporation BSD License ("License")
   
@@ -51,30 +52,48 @@
 
 require 'net/telnet'
 require 'timeout'
+require 'tsc/session/controller.rb'
+require 'sk/net/endpoint.rb'
 
 module TSC
   module Session
-    class TelnetStream < Net::Telnet
-      def initialize(host, port = nil)
-        @host = host.to_s.strip
-        @port = port || 23
+    module Telnet
+      class Stream < Net::Telnet
+        class << self
+          def activate(options, &block)
+            TSC::Session::Controller.new(stream(options), emulator, options).activate(&block)
+          end
 
-        super('Host' => @host, 'Port' => @port)
-      end
+          def stream(options)
+            self.new options
+          end
 
-      def get_available_data
-        begin
-          waitfor /./
-        rescue TimeoutError
-          retry
-        rescue
-          nil
-        end or raise EOFError, "Connection to #{[@host, @port].join(':').inspect} closed on remote request"
-      end
+          def emulator
+            TSC::Session::Emulator::Vt100.new TSC::Session::Screen.new, true
+          end
+        end
 
-      def reset
-        self.close_read
-        self.close_write
+        attr_reader :endpoint
+
+        def initialize(host, port = nil)
+          @endpoint = SK::Net::Endpoint.new(host, port, 23)
+          super 'Host' => @endpoint.host, 'Port' => @endpoint.port
+        end
+
+        def get_available_data
+          begin
+            waitfor /./
+          rescue TimeoutError
+            retry
+          rescue
+            nil
+          end or raise EOFError, "Connection to #{endpoint.inspect} closed on remote request"
+        end
+
+        def reset
+          self.close_read
+          self.close_write
+        end
       end
     end
   end
