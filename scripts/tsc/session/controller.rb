@@ -60,8 +60,9 @@ module TSC
       attr_reader :prompt
       attr_writer :verbose
 
-      def initialize(stream, options = {})
+      def initialize(stream, emulator, options = {})
         @stream = stream
+        @emulator = emulator
         @error_handler_thread = Thread.current
 
         if Hash === options
@@ -73,13 +74,9 @@ module TSC
         @prompt = Regexp.new(params.prompt || "[$%#>]\s+$")
       end
 
-      def protocol
-        self.class.name.split('::').pop
-      end
-
       def terminal
         @terminal ||= begin
-          Terminal.new @stream, emulator
+          Terminal.new @stream, @emulator
         end
       end
 
@@ -146,10 +143,6 @@ module TSC
 
           terminal.screen.wait_prompt prompt, 10
         end
-      end
-
-      def emulator
-        raise TSC::NotImplementedError, :emulator
       end
 
       private
