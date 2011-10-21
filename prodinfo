@@ -59,7 +59,7 @@ require 'ostruct'
 product {
   name "ACT"
   description "Acceptance testing tool"
-  version "1.7"
+  version "2.0-trunk"
   user "root"
   group "bin"
   top "/usr/local/act"
