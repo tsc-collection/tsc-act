@@ -50,44 +50,42 @@
 =end
 
 module TSC
-  module Session
-    module Mvs
-      class PtsInfo
-        attr_reader :customer, :product, :status, :date, :priority
+  module Mvs
+    class PtsInfo
+      attr_reader :customer, :product, :status, :date, :priority
 
-        def initialize(*args)
-          @name, @customer, @product, *rest = *args
-          @status, @date, @priority, *rest = *rest
-          @description, *rest = *rest
-        end
+      def initialize(*args)
+        @name, @customer, @product, *rest = *args
+        @status, @date, @priority, *rest = *rest
+        @description, *rest = *rest
+      end
 
-        def pts?
-          item? 'PTS'
-        end
+      def pts?
+        item? 'PTS'
+      end
 
-        def prj?
-          item? 'PRJ'
-        end
-        
-        def item?(label)
-          [ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
-        end
+      def prj?
+        item? 'PRJ'
+      end
+      
+      def item?(label)
+        [ *Regexp.new('^' + label + '(\d+)$', Regexp::IGNORECASE).match(@name) ].slice(1)
+      end
 
-        def name
-          @name.to_s.upcase
-        end
+      def name
+        @name.to_s.upcase
+      end
 
-        def description
-          @description.to_s.upcase
-        end
+      def description
+        @description.to_s.upcase
+      end
 
-        def number
-          @name.scan(%r{\d+$}).first.to_i
-        end
+      def number
+        @name.scan(%r{\d+$}).first.to_i
+      end
 
-        def to_s
-          "%8.8-s - %s" % [ name, description ]
-        end
+      def to_s
+        "%8.8-s - %s" % [ name, description ]
       end
     end
   end
