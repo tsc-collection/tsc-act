@@ -54,7 +54,7 @@ require 'tsc/array'
 
 module TSC
   module Session
-    class Chat
+    class Chatter
       include TSC::Trace
 
       attr_writer :time_to_complete, :prompt_delay, :eol
@@ -97,7 +97,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
 
   module TSC
     module Session
-      class ChatTest < Test::Unit::TestCase
+      class ChatterTest < Test::Unit::TestCase
         class MockScreen < Session::Screen
           attr_reader :prompts
           def initialize
@@ -135,10 +135,10 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         end
 
         def test_login_and_eol
-          @chat.eol = "\r\n"
+          @chatter.eol = "\r\n"
           @communicator.eol = "\r\n"
 
-          @chat.start('login', 'password')
+          @chatter.start('login', 'password')
           assert_equal [
             ['Login: ', 7, 1],
             ['Password: ', 4, 2],
@@ -148,9 +148,9 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
 
         def test_different_timeouts
           @communicator.typein 'Login: '
-          @chat.time_to_complete = 4
-          @chat.prompt_delay = 0
-          @chat.start('login', 'password')
+          @chatter.time_to_complete = 4
+          @chatter.prompt_delay = 0
+          @chatter.start('login', 'password')
           assert_equal [
             ['Login: ', 4, 0],
             ['Password: ', 4, 2],
@@ -161,7 +161,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         def setup
           @communicator = MockCommunicator.new
           @communicator.eol = "\r"
-          @chat = Session::Chat.new @communicator, [ 
+          @chatter = Session::Chater.new @communicator, [ 
             'Login: ', 
             [ 'Password: ', 4, 2], 
             ['$ ',2]
@@ -170,7 +170,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
         end
 
         def teardown
-          @chat = nil
+          @chater = nil
           @communicator = nil
           GC.start
         end

@@ -56,7 +56,7 @@ require 'tsc/dataset.rb'
 
 module TSC
   module Session
-    class Manager
+    class Controller
       attr_reader :prompt
       attr_writer :verbose
 
