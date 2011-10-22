@@ -52,104 +52,45 @@
 
 require 'tsc/session/terminal.rb'
 require 'tsc/errors.rb'
-require 'tsc/dataset.rb'
 
 module TSC
   module Session
     class Controller
-      attr_reader :prompt
       attr_writer :verbose
 
-      def initialize(stream, emulator, options = {})
+      def initialize(stream, emulator, usher = nil)
         @stream = stream
         @emulator = emulator
-        @error_handler_thread = Thread.current
-
-        if Hash === options
-          params.update options
-        else
-          params.prompt = options.to_s
-        end
-
-        @prompt = Regexp.new(params.prompt || "[$%#>]\s+$")
-      end
-
-      def terminal
-        @terminal ||= begin
-          Terminal.new @stream, @emulator
-        end
+        @usher = usher || self
       end
 
       def verbose?
         @verbose ? true : false
       end
+
+      def conduct(terminal)
+        terminal
+      end
       
       def activate(&block)
         raise "No block given" unless block
 
-        Thread.new do
-          TSC::Error.relay @error_handler_thread do
-            begin 
-              terminal.start
-              if verbose?
-                terminal.screen.show *Array(params.screener)
-                terminal.start_screen_check *Array(params.screener)
+        Thread.new Thread.current do |_master|
+          TSC::Error.relay _master do
+            Termial.new(@stream, @emulator).tap { |_terminal|
+              begin 
+                _terminal.start
+                if verbose?
+                  _terminal.screen.show *Array(params.screener)
+                  _terminal.start_screen_check *Array(params.screener)
+                end
+                block.call conduct(_terminal)
+              ensure
+                _terminal.reset
               end
-              block.call terminal
-            ensure
-              terminal.reset
-            end
+            }
           end
         end
-      end
-
-      protected
-      #########
-
-      def login(user, password)
-        terminal.screen.lock do
-          terminal.screen.wait_prompt %r{ogin:\s*}, 60
-          terminal.typein "#{user}\n"
-
-          terminal.screen.wait_prompt %r{assword:\s*}, 30
-          terminal.typein "#{password}\n"
-
-          terminal.screen.wait_prompt prompt, 30
-        end
-      end
-
-      def fix_terminal_size
-        terminal.screen.lock do
-          terminal.screen.wait_prompt prompt, 60
-          terminal.typein "stty rows #{terminal.screen.size.y} cols #{terminal.screen.size.x}\n"
-
-          terminal.screen.wait_prompt prompt, 10
-          terminal.typein "LINES=#{terminal.screen.size.y} export LINES\n"
-
-          terminal.screen.wait_prompt prompt, 10
-          terminal.typein "COLUMNS=#{terminal.screen.size.x} export COLUMNS\n"
-
-          terminal.screen.wait_prompt prompt, 10
-          terminal.typein "COLS=#{terminal.screen.size.x} export COLS\n"
-
-          terminal.screen.wait_prompt prompt, 10
-        end
-      end
-
-      def fix_terminal_type
-        terminal.screen.lock do
-          terminal.screen.wait_prompt prompt, 60
-          terminal.typein "TERM='#{terminal.term}' export TERM\n"
-
-          terminal.screen.wait_prompt prompt, 10
-        end
-      end
-
-      private
-      #######
-
-      def params
-        @params ||= Dataset[ :prompt => nil, :screener => nil ]
       end
     end
   end
