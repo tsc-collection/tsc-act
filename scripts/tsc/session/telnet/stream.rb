@@ -53,7 +53,7 @@
 require 'net/telnet'
 require 'timeout'
 require 'tsc/session/controller.rb'
-require 'tsc/session/unix-usher.rb'
+require 'tsc/session/unix-terminal-arranger.rb'
 require 'sk/net/endpoint.rb'
 
 module TSC
@@ -62,7 +62,7 @@ module TSC
       class Stream < Net::Telnet
         class << self
           def activate(options, &block)
-            TSC::Session::Controller.new(stream(options), emulator, usher(options)).activate(&block)
+            TSC::Session::Controller.new(stream(options), emulator, arranger(options)).activate(&block)
           end
 
           def stream(options)
@@ -73,8 +73,8 @@ module TSC
             TSC::Session::Emulator::Vt100.new TSC::Session::Screen.new, true
           end
 
-          def usher(options)
-            TSC::Session::UnixUsher.new(options)
+          def arranger(options)
+            TSC::Session::UnixTerminalArranger.new(options)
           end
         end
 

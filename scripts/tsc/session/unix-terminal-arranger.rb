@@ -24,7 +24,7 @@
 
 module Tsc
   module Session
-    class UnixUsher
+    class UnixTerminalArranger
       attr_reader :user, :password
 
       def initialize(provider)
@@ -33,15 +33,17 @@ module Tsc
         @prompt = Regexp.new(provider.prompt || "[$%#>]\s+$")
       end
 
-      def conduct(terminal)
-        Conductor.new(terminal, @prompt).tap { |_conductor|
-          _conductor.login(user, password)
-          _conductor.setup_terminal_size
-          _conductor.setup_terminal_type
-        }
+      def arrange_terminal(terminal)
+        terminal.tap do
+          Arranger.new(terminal, @prompt).tap { |_arranger|
+            _arranger.login(user, password)
+            _arranger.setup_terminal_size
+            _arranger.setup_terminal_type
+          }
+        end
       end
 
-      class Conductor
+      class Arranger
         attr_reader :terminal, :prompt
 
         def initialize(terminal, prompt)
@@ -98,7 +100,7 @@ if $0 == __FILE__
 
   module Tsc
     module Session
-      class UnixUsherTest < Test::Unit::TestCase
+      class UnixTerminalArrangerTest < Test::Unit::TestCase
         def setup
         end
       end

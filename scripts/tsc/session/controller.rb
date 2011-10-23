@@ -52,23 +52,17 @@
 
 require 'tsc/session/terminal.rb'
 require 'tsc/errors.rb'
+require 'tsc/rt/scope.rb'
 
 module TSC
   module Session
     class Controller
-      attr_writer :verbose
-
-      def initialize(stream, emulator, usher = nil)
-        @stream = stream
-        @emulator = emulator
-        @usher = usher || self
+      def initialize(stream, emulator, arranger = self)
+        @scope = SK::Rt::Scope.new "session-controller"
+        @stream, @emulator, @arranger = stream, emulator, arranger
       end
 
-      def verbose?
-        @verbose ? true : false
-      end
-
-      def conduct(terminal)
+      def arrange_terminal(terminal)
         terminal
       end
       
@@ -77,14 +71,15 @@ module TSC
 
         Thread.new Thread.current do |_master|
           TSC::Error.relay _master do
-            Termial.new(@stream, @emulator).tap { |_terminal|
+            Terminal.new(@stream, @emulator).tap { |_terminal|
               begin 
                 _terminal.start
-                if verbose?
-                  _terminal.screen.show *Array(params.screener)
-                  _terminal.start_screen_check *Array(params.screener)
-                end
-                block.call conduct(_terminal)
+
+                scope.notice {
+                  _terminal.screen.show
+                  _terminal.start_screen_check
+                }
+                block.call arranger.arrange_terminal(_terminal)
               ensure
                 _terminal.reset
               end
@@ -92,7 +87,11 @@ module TSC
           end
         end
       end
+
+      private
+      #######
+      
+      attr_reader :scope
     end
   end
 end
-
