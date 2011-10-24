@@ -22,7 +22,7 @@
   Author: Gennady Bystritsky (gennady.bystritsky@quest.com)
 =end
 
-module Tsc
+module TSC
   module Session
     class UnixTerminalArranger
       attr_reader :user, :password
@@ -98,7 +98,7 @@ if $0 == __FILE__
   require 'test/unit'
   require 'mocha'
 
-  module Tsc
+  module TSC
     module Session
       class UnixTerminalArrangerTest < Test::Unit::TestCase
         def setup

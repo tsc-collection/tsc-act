@@ -1,4 +1,5 @@
 =begin
+  vim: sw=2:
  
              Tone Software Corporation BSD License ("License")
   
@@ -51,17 +52,32 @@
 
 require 'tsc/test/accept/runner.rb'
 require 'tsc/test/accept/runtime.rb'
-require 'tsc/session/telnet-manager.rb'
+require 'tsc/session/telnet/stream.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
-    host = Array(options['host']).first || ARGV.shift or raise 'No host specified'
-
-    manager = TSC::Session::TelnetManager.new(host, user, password, options['prompt'])
-    manager.verbose = options['verbose'] || options['interactive']
-
-    ensure_thread_completion manager.session { |_terminal|
+    ensure_thread_completion make_active_stream { |_terminal|
       TSC::Test::Accept::Runtime.instance.start _terminal, options
+    }
+  end
+
+  private
+  #######
+
+  def host
+    @host ||= options.host || ARGV.shift or raise 'No host specified'
+  end
+
+  def make_active_stream(&block)
+    TSC::Session::Telnet::Stream::activate(build_connection_params, &block)
+  end
+
+  def build_connection_params
+    {
+      :host => host,
+      :user => user,
+      :password => password,
+      :prompt => options.prompt
     }
   end
 end
