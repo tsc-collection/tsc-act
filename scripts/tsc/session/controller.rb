@@ -58,7 +58,7 @@ module TSC
   module Session
     class Controller
       def initialize(stream, emulator, arranger = self)
-        @scope = SK::Rt::Scope.new "session-controller"
+        @scope = SK::Rt::Scope.new "tsc.session"
         @stream, @emulator, @arranger = stream, emulator, arranger
       end
 
@@ -75,7 +75,7 @@ module TSC
               begin 
                 _terminal.start
 
-                scope.info {
+                scope.notice {
                   _terminal.screen.show
                   _terminal.start_screen_check
                 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
-# vim: set sw=2:
 =begin
+  vim: set sw=2:
  
              Tone Software Corporation BSD License ("License")
   
@@ -83,6 +83,7 @@ class Application < TSC::Application
       require 'tsc/test/accept/runner.rb'
       require 'tsc/test/accept/runtime.rb'
       require 'tsc/config.rb'
+      require 'sk/rt/scope.rb'
 
       do_and_exit { run_internal_tests } if options.test?
       do_and_exit { print_loadpath } if options.loadpath?
@@ -95,9 +96,15 @@ class Application < TSC::Application
         runner = ARGV.shift
       end
 
+      if options.verbose? or options.interactive?
+        SK::Rt::Scope.controller.set_scope_level "tsc.session", :notice
+      end
+
       unless runner
-        do_and_exit { TSC::Test::Accept::Runtime.instance.interactive } if options.interactive?
-        raise 'No test runner specified'
+        raise 'No test runner specified' unless options.interactive?
+
+        TSC::Test::Accept::Runtime.instance.interactive 
+        exit 0
       end
 
       runner_path = figure_runner_path(runner)
