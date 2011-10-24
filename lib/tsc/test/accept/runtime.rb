@@ -53,9 +53,8 @@ require 'singleton'
 require 'tsc/errors.rb'
 require 'tsc/test/accept/action.rb'
 
-require 'tsc/session/manager.rb'
-require 'tsc/session/dumb-emulator.rb'
-require 'tsc/session/vt100-emulator.rb'
+require 'tsc/session/emulator/dumb.rb'
+require 'tsc/session/emulator/vt100.rb'
 
 module TSC
   module Test

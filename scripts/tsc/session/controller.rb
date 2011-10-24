@@ -51,8 +51,8 @@
 =end
 
 require 'tsc/session/terminal.rb'
-require 'tsc/errors.rb'
 require 'tsc/rt/scope.rb'
+require 'tsc/errors.rb'
 
 module TSC
   module Session
