@@ -54,6 +54,7 @@ require 'net/telnet'
 require 'timeout'
 require 'tsc/session/controller.rb'
 require 'tsc/session/unix-terminal-arranger.rb'
+require 'tsc/dataset.rb'
 require 'sk/net/endpoint.rb'
 
 module TSC
@@ -74,7 +75,7 @@ module TSC
           end
 
           def arranger(options)
-            TSC::Session::UnixTerminalArranger.new(options)
+            TSC::Session::UnixTerminalArranger.new(TSC::Dataset.new(options))
           end
         end
 

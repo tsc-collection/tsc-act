@@ -71,11 +71,11 @@ module TSC
 
         Thread.new Thread.current do |_master|
           TSC::Error.relay _master do
-            Terminal.new(@stream, @emulator).tap { |_terminal|
+            Terminal.new(stream, emulator).tap { |_terminal|
               begin 
                 _terminal.start
 
-                scope.notice {
+                scope.info {
                   _terminal.screen.show
                   _terminal.start_screen_check
                 }
@@ -91,7 +91,7 @@ module TSC
       private
       #######
       
-      attr_reader :scope
+      attr_reader :scope, :stream, :emulator, :arranger
     end
   end
 end
