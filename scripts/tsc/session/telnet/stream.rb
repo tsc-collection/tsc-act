@@ -53,8 +53,6 @@
 require 'net/telnet'
 require 'timeout'
 require 'tsc/session/controller.rb'
-require 'tsc/session/unix-terminal-arranger.rb'
-require 'tsc/dataset.rb'
 require 'sk/net/endpoint.rb'
 
 module TSC
@@ -62,20 +60,16 @@ module TSC
     module Telnet
       class Stream < Net::Telnet
         class << self
-          def activate(options, &block)
-            TSC::Session::Controller.new(stream(options), emulator, arranger(options)).activate(&block)
+          def activate(host, arranger = nil, &block)
+            TSC::Session::Controller.new(stream(host), emulator, arranger).activate(&block)
           end
 
-          def stream(options)
-            self.new options
+          def stream(host)
+            self.new host
           end
 
           def emulator
             TSC::Session::Emulator::Vt100.new TSC::Session::Screen.new, true
-          end
-
-          def arranger(options)
-            TSC::Session::UnixTerminalArranger.new(TSC::Dataset.new(options))
           end
         end
 

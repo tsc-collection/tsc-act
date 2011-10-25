@@ -79,6 +79,10 @@ module TSC
           raise TSC::NotImplementedError, :start
         end
 
+        def host
+          @host ||= options.host || ARGV.shift or raise 'No host specified'
+        end
+
         def user
           @user ||= config['user'] || options.user || Etc.getpwuid.name
         end
@@ -91,10 +95,13 @@ module TSC
           end
         end
 
+        def prompt
+          options.prompt
+        end
+
         def config 
           @config ||= app.config || Hash.new
         end
-
 
         protected
         #########

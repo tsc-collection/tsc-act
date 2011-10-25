@@ -53,6 +53,7 @@
 require 'tsc/test/accept/runner.rb'
 require 'tsc/test/accept/runtime.rb'
 require 'tsc/session/telnet/stream.rb'
+require 'tsc/session/unix-terminal-arranger.rb'
 
 class Runner < TSC::Test::Accept::Runner
   def start
@@ -64,20 +65,11 @@ class Runner < TSC::Test::Accept::Runner
   private
   #######
 
-  def host
-    @host ||= options.host || ARGV.shift or raise 'No host specified'
+  def arranger
+    TSC::Session::UnixTerminalArranger.new self
   end
 
   def make_active_stream(&block)
-    TSC::Session::Telnet::Stream::activate(build_connection_params, &block)
-  end
-
-  def build_connection_params
-    {
-      :host => host,
-      :user => user,
-      :password => password,
-      :prompt => options.prompt
-    }
+    TSC::Session::Telnet::Stream::activate(host, arranger, &block)
   end
 end
