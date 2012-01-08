@@ -1,15 +1,15 @@
 =begin
   vim: sw=2:
   Copyright (c) 2011, Quest Software, http://www.quest.com
-  
+
   ALL RIGHTS RESERVED.
-  
+
   This software is the confidential and proprietary information of
   Quest Software Inc. ("Confidential Information"). You shall not
   disclose such Confidential Information and shall use it only in
   accordance with the terms of the license agreement you entered
   into with Quest Software Inc.
-  
+
   QUEST SOFTWARE INC. MAKES NO REPRESENTATIONS OR
   WARRANTIES ABOUT THE SUITABILITY OF THE SOFTWARE,
   EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
@@ -18,7 +18,7 @@
   SOFTWARE SHALL NOT BE LIABLE FOR ANY DAMAGES
   SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING
   OR DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES.
-  
+
   Author: Gennady Bystritsky (gennady.bystritsky@quest.com)
 =end
 

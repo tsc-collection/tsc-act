@@ -1,15 +1,15 @@
 =begin
   vim: sw=2:
- 
+
              Tone Software Corporation BSD License ("License")
-  
+
                         Acceptance Testing Framework
-  
+
   Please read this License carefully before downloading this software. By
   downloading or using this software, you are agreeing to be bound by the
   terms of this License. If you do not or cannot agree to the terms of
   this License, please do not download or use the software.
-  
+
   Provides facility for creating custom test suites for
   acceptance/regression testing. The engine allows interfacing a system to
   be tested through a variety of means such as a process on a local host
@@ -19,23 +19,23 @@
   various events. Input to the system under test can be generated with
   support for functional keys. Ruby test/unit framework is readily
   available for assertions.
-       
+
   Copyright (c) 2003, 2004, Tone Software Corporation
-       
+
   All rights reserved.
-       
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
     * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer. 
+      notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution. 
+      documentation and/or other materials provided with the distribution.
     * Neither the name of the Tone Software Corporation nor the names of
       its contributors may be used to endorse or promote products derived
-      from this software without specific prior written permission. 
-  
+      from this software without specific prior written permission.
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
   IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -47,7 +47,7 @@
   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
+
 =end
 
 require 'tsc/session/emulator/abstract.rb'
@@ -75,7 +75,7 @@ module TSC
 
           reset
         end
-        
+
         def reset
           @mode = :text
           @params = []
@@ -151,12 +151,12 @@ module TSC
           case byte
             when 0 then operation_ignored :zero
 
-            when 016 
+            when 016
               @alternate_charset = true
-            when 017 
+            when 017
               @alternate_charset = false
 
-            when ?\e 
+            when ?\e
               switch_mode :control
             else
               if @alternate_charset == true
@@ -187,9 +187,9 @@ module TSC
             when ?= then operation_ignored :alternate_keypad_on
             when ?> then operation_ignored :numeric_keypad_on
 
-            when ?7 
+            when ?7
               @saved_cursor = screen.cursor
-            when ?8 
+            when ?8
               screen.set_cursor @saved_cursor
             when ?M # cursor up or scroll down
               cursor = screen.cursor
@@ -246,16 +246,16 @@ module TSC
               size = screen.size
 
               case @params.first
-                when 0 
+                when 0
                   from = (cursor.y * size.x) + cursor.x
                   to = size.x * size.y
-                when 1 
+                when 1
                   from = 0
                   to = (cursor.y * size.x) + cursor.x
-                when 2 
+                when 2
                   from = 0
                   to = size.x * size.y
-                else 
+                else
                   operation_failed :erase_page
               end
               screen.erase from, to
@@ -264,13 +264,13 @@ module TSC
               size = screen.size
 
               case @params.first
-                when 0 
+                when 0
                   from = (cursor.y * size.x) + cursor.x
                   to = (cursor.y + 1) * size.x
-                when 1 
+                when 1
                   from = cursor.y * size.x
                   to = from + cursor.x
-                when 2 
+                when 2
                   from = cursor.y * size.x
                   to = from + size.x
                 else
@@ -295,7 +295,7 @@ module TSC
           case byte
             when ?h
               case @params.first
-                when 1 
+                when 1
                   @extended_keys = true
                 when 7
                   screen.autowrap = true
@@ -304,7 +304,7 @@ module TSC
               end
             when ?l
               case @params.first
-                when 1 
+                when 1
                   @extended_keys = false
                 when 7
                   screen.autowrap = false
@@ -346,7 +346,7 @@ module TSC
           end
           operation_failed @mode
         end
-        
+
         def switch_mode(mode)
           @params = [ 0 ]
           throw :switch, mode
@@ -376,7 +376,7 @@ module TSC
   end
 end
 
-if $0 == __FILE__ 
+if $0 == __FILE__
   require 'test/unit'
   require 'tsc/session/screen.rb'
 
@@ -516,13 +516,13 @@ if $0 == __FILE__
 
             @emulator.process_data "\eM"
             assert_equal Pair[1,1], @screen.cursor
-            assert_equal [ 
+            assert_equal [
               "aaa", "bbb", "ccc", "ddd", *Array.new(20, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
 
             @emulator.process_data "\eM"
             assert_equal Pair[1,1], @screen.cursor
-            assert_equal [ 
+            assert_equal [
               "aaa", "", "bbb", "ddd", *Array.new(20, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
           end
@@ -530,24 +530,24 @@ if $0 == __FILE__
           def test_erase_page
             @screen.display "aaa\nbbb\nccc\nddd\neee"
             @screen.set_cursor 1, 3
-            assert_equal [ 
+            assert_equal [
               "aaa", "bbb", "ccc", "ddd", "eee", *Array.new(19, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
 
             @emulator.process_data "\e[J"
-            assert_equal [ 
+            assert_equal [
               "aaa", "bbb", "ccc", "d", "", *Array.new(19, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
 
             @screen.set_cursor 2, 1
             @emulator.process_data "\e[1J"
-            assert_equal [ 
+            assert_equal [
               "", "  b", "ccc", "d", "", *Array.new(19, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
 
             @screen.set_cursor 2, 2
             @emulator.process_data "\e[2J"
-            assert_equal [ 
+            assert_equal [
               "", "", "", "", "", *Array.new(19, "")
             ], @screen.lines.map {|_line| _line.gsub(%r{\s+$},'') }
           end

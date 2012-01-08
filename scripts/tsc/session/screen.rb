@@ -1,15 +1,15 @@
 # vim: set sw=2:
 =begin
- 
+
              Tone Software Corporation BSD License ("License")
-  
+
                         Acceptance Testing Framework
-  
+
   Please read this License carefully before downloading this software. By
   downloading or using this software, you are agreeing to be bound by the
   terms of this License. If you do not or cannot agree to the terms of
   this License, please do not download or use the software.
-  
+
   Provides facility for creating custom test suites for
   acceptance/regression testing. The engine allows interfacing a system to
   be tested through a variety of means such as a process on a local host
@@ -19,23 +19,23 @@
   various events. Input to the system under test can be generated with
   support for functional keys. Ruby test/unit framework is readily
   available for assertions.
-       
+
   Copyright (c) 2003, 2004, Tone Software Corporation
-       
+
   All rights reserved.
-       
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
     * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer. 
+      notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution. 
+      documentation and/or other materials provided with the distribution.
     * Neither the name of the Tone Software Corporation nor the names of
       its contributors may be used to endorse or promote products derived
-      from this software without specific prior written permission. 
-  
+      from this software without specific prior written permission.
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
   IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -47,7 +47,7 @@
   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  
+
 =end
 
 require 'tsc/monitor'
@@ -58,7 +58,7 @@ require 'tsc/session/line-buffer'
 
 module TSC
   module Session
-    class Screen 
+    class Screen
       TABSTOP = 8
       include TSC::Trace
 
@@ -87,7 +87,7 @@ module TSC
 
         "#{@area.slice(index)}"
       end
-      
+
       def line_upto_cursor(offset = 0)
         x = [ [ 0, cursor.x + offset ].max, size.x ].min
         "#{@area.slice(cursor.y).slice(0, x)}"
@@ -116,7 +116,7 @@ module TSC
       def cursor
         @cursor.clone
       end
-      
+
       def cursor_at?(*args)
         @cursor == Pair.new(*args)
       end
@@ -146,7 +146,7 @@ module TSC
         trace
         is_update = true
         self.lock do
-          if @update_counter == 0 
+          if @update_counter == 0
             is_update = @update_condition.wait time_to_wait
           end
           @update_counter = 0
@@ -227,22 +227,22 @@ module TSC
           return true if prompt?(prompt)
         end
       end
-      
+
       def show(destination = $stdout, &block)
         separator = "+#{'-' * @size.x}+"
         snapshot = [
-          "size=#{@size.inspect}", 
+          "size=#{@size.inspect}",
           "cursor=#{@cursor.inspect}",
           "region=#{@scroll_region.inspect}",
           "title=#{@title.inspect}",
           separator,
-          @area.map { |_line| 
-            '|' + _line + '|' 
+          @area.map { |_line|
+            '|' + _line + '|'
           },
           separator
         ].flatten
 
-        result = block ? snapshot.map(&block) : snapshot 
+        result = block ? snapshot.map(&block) : snapshot
         return if result.compact.empty?
 
         if IO === destination
@@ -263,7 +263,7 @@ module TSC
         text = text.to_s
         trace text
 
-        ensure_update do 
+        ensure_update do
           depot = ""
           text.each_byte do |_byte|
             if @special_characters.include? _byte
@@ -345,7 +345,7 @@ module TSC
               bottom = @size.y - 1
             end
             area = @area[top .. bottom]
-            number.times do 
+            number.times do
               area.shift
               area.push ' ' * @size.x
             end
@@ -369,7 +369,7 @@ module TSC
               bottom = @size.y - 1
             end
             area = @area[top .. bottom]
-            number.times do 
+            number.times do
               area.pop
               area.unshift ' ' * @size.x
             end
@@ -452,7 +452,7 @@ module TSC
         end
       end
 
-      private 
+      private
       #######
       def reset_size(*args)
         @size = Pair.new *args
@@ -469,7 +469,7 @@ module TSC
         reset_size 80, 24
         clear
 
-        @special_characters = Hash[ 
+        @special_characters = Hash[
           000 => proc {},
           007 => proc { beep },
           010 => proc { process_backspace },
@@ -518,7 +518,7 @@ module TSC
       def process_text(text)
         trace text
         return if text.empty?
-        
+
         if @cursor.x == @size.x
           return unless @autowrap == true
 
@@ -565,7 +565,7 @@ module TSC
           @line_content = (@area[@cursor.y][@line_start.x ... @cursor.x]).clone
         end
       end
-      
+
       def process_newline
         trace
         process_return if @newline_assumes_return == true
@@ -590,7 +590,7 @@ module TSC
         end
         @line_content = nil
       end
-      
+
       def with_line_buffer
         trace
         return unless block_given?
@@ -644,7 +644,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
           @screen.set_cursor 0, 5
           @screen.display "abcdef"
           assert @screen.lines[5][0,6] == "abcdef", "Wrong screen content"
-          
+
           @screen.lines[5].swapcase!
 
           assert @screen.lines[5][0,6] == "abcdef", "Screen area is mutable"
@@ -953,7 +953,7 @@ if $0 != '-e' and $0 == __FILE__ or defined? Test::Unit::TestCase
               true
             end
           end
-          thread.kill 
+          thread.kill
           assert_equal false, result
           assert_equal ["aaa", "bbb" ], array
         end
